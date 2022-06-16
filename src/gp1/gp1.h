@@ -68,25 +68,22 @@ void gp1_ws_disconnected(
 #define GP1_PLAYER_LAST         8
 #define GP1_PLAYER_COUNT        9 /* including the fake "aggregate" player */
 
-// Also defined in vm/gp1_vm.h
-#ifndef GP1_BTNID_LEFT
-  #define GP1_BTNID_LEFT      0x0001
-  #define GP1_BTNID_RIGHT     0x0002
-  #define GP1_BTNID_UP        0x0004
-  #define GP1_BTNID_DOWN      0x0008
-  #define GP1_BTNID_SOUTH     0x0010
-  #define GP1_BTNID_WEST      0x0020
-  #define GP1_BTNID_EAST      0x0040
-  #define GP1_BTNID_NORTH     0x0080
-  #define GP1_BTNID_L1        0x0100
-  #define GP1_BTNID_R1        0x0200
-  #define GP1_BTNID_L2        0x0400
-  #define GP1_BTNID_R2        0x0800
-  #define GP1_BTNID_AUX1      0x1000
-  #define GP1_BTNID_AUX2      0x2000
-  #define GP1_BTNID_AUX3      0x4000
-  #define GP1_BTNID_CD        0x8000
-#endif
+#define GP1_BTNID_LEFT      0x0001
+#define GP1_BTNID_RIGHT     0x0002
+#define GP1_BTNID_UP        0x0004
+#define GP1_BTNID_DOWN      0x0008
+#define GP1_BTNID_SOUTH     0x0010
+#define GP1_BTNID_WEST      0x0020
+#define GP1_BTNID_EAST      0x0040
+#define GP1_BTNID_NORTH     0x0080
+#define GP1_BTNID_L1        0x0100
+#define GP1_BTNID_R1        0x0200
+#define GP1_BTNID_L2        0x0400
+#define GP1_BTNID_R2        0x0800
+#define GP1_BTNID_AUX1      0x1000
+#define GP1_BTNID_AUX2      0x2000
+#define GP1_BTNID_AUX3      0x4000
+#define GP1_BTNID_CD        0x8000
  
 uint16_t gp1_get_input_state(int32_t playerid);
 

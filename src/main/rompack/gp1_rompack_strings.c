@@ -1,4 +1,4 @@
-#include "gp1_cli.h"
+#include "main/gp1_cli.h"
 #include "io/gp1_serial.h"
 
 /* Cleanup.

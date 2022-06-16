@@ -1,4 +1,4 @@
-#include "gp1_cli.h"
+#include "main/gp1_cli.h"
 #include "gp1/gp1.h"
 
 /* Basename.

@@ -52,10 +52,10 @@ struct gp1_vm_delegate {
   int (*ws_send)(struct gp1_vm *vm,int wsid,const void *src,int srcc);
 };
 
-void gp1_vm_del(struct gp1_vm *gp1);
-int gp1_vm_ref(struct gp1_vm *gp1);
+void gp1_vm_del(struct gp1_vm *vm);
+int gp1_vm_ref(struct gp1_vm *vm);
 
-struct gp1_vm *gp1_vm_new(const struct gp1_delegate *delegate);
+struct gp1_vm *gp1_vm_new(const struct gp1_vm_delegate *delegate);
 
 void *gp1_vm_get_userdata(const struct gp1_vm *vm);
 
@@ -75,23 +75,11 @@ int gp1_vm_init_game(struct gp1_vm *vm);
  */
 int gp1_vm_update(struct gp1_vm *vm);
 
-#define GP1_BTNID_LEFT      0x0001
-#define GP1_BTNID_RIGHT     0x0002
-#define GP1_BTNID_UP        0x0004
-#define GP1_BTNID_DOWN      0x0008
-#define GP1_BTNID_SOUTH     0x0010
-#define GP1_BTNID_WEST      0x0020
-#define GP1_BTNID_EAST      0x0040
-#define GP1_BTNID_NORTH     0x0080
-#define GP1_BTNID_L1        0x0100
-#define GP1_BTNID_R1        0x0200
-#define GP1_BTNID_L2        0x0400
-#define GP1_BTNID_R2        0x0800
-#define GP1_BTNID_AUX1      0x1000
-#define GP1_BTNID_AUX2      0x2000
-#define GP1_BTNID_AUX3      0x4000
-#define GP1_BTNID_CD        0x8000
-int gp1_vm_input_event(struct gp1_vm *vm,int devid,int btnid,int value);
+/* Set state of one input button.
+ * (playerid) in 1..8 (GP1_PLAYER_FIRST..GP1_PLAYER_LAST).
+ * (btnid) is a single bit among the low 16 (GP1_BTNID_*, in gp1/gp1.h).
+ */
+int gp1_vm_input_event(struct gp1_vm *vm,int playerid,int btnid,int value);
 
 /* Initialize the synthesizer with whatever rate and channel count your driver expects, we're flexible.
  * It is safe to call gp1_synthesize() while other gp1 calls are running -- that is not true of gp1 functions in general.

@@ -1,5 +1,5 @@
 #include "gp1_cli.h"
-#include "gp1_host.h"
+#include "host/gp1_host.h"
 #include "io/gp1_io_fs.h"
 #include "io/gp1_io_os.h"
 #include "vm/gp1_rom.h"
