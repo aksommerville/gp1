@@ -1,0 +1,34 @@
+{
+  
+  "gameVersion": "1.0.0",
+  "gp1VersionMin": "1.0.0",
+  "gp1VersionTarget": "1.0.0",
+  "pubDate": "2022-06-08",
+  "fbWidth": 640,
+  "fbHeight": 360,
+  "playerCountMin": 1,
+  "playerCountMax": 8,
+  
+  "languages": ["en"],
+  
+  "title": [["zh","Ni Hao!"],["en","GP1 Lights-On"]],
+  "copyright": "(c) 2022 AK Sommerville",
+  "description": [["en","Validates all functionality. Not a real game."]],
+  "author": "AK Sommerville",
+  "website": "http://aksommerville.com/lightson",
+  "license": "GNU General Public License, version 3",
+  "variant": "Hyper Turbo Edition",
+  
+  "net": [{
+    "host": "localhost",
+    "port": 12345,
+    "rationale": [["en","Not actually going to use it, just including this metadata as a demonstration."]],
+  }],
+  
+  "storage": [{
+    "key": 123,
+    "sizeMin": 0,
+    "sizeMax": 1024,
+    "rationale": [["en","Not actually going to use it, just including this metadata as a demonstration."]],
+  }]
+}

@@ -1,0 +1,174 @@
+GP1 ROM File Format
+
+Integers are big-endian unless noted.
+
+Entire file is composed of chunks:
+  4 type, ascii
+  4 length
+  ... body
+  
+The first chunk must be "gpHD" with a length of 22, this can serve as a file signature.
+
+Chunk types work kind of like PNG, bit 0x20 is a flag:
+  aaaa
+  |||\- reserved, always 0
+  ||\-- reserved, always 0
+  |\--- Critical. If not recognized, reader should fail.
+  \---- Standard. All chunks defined by GP1's maintainers will be 1, all others 0.
+  
+Type Count Comment
+gpHD     1 File header.
+exEC     1 WebAssembly executable.
+lANG   0,1 Language declarations.
+hTXT     * Header text (title, author, etc).
+teXT     * Text for use in-game, one per language.
+rURL     * Remote host the game wants to contact.
+sTOR     * Declaration of desired persistent storage.
+imAG     * Raw graphics.
+auDO     * Audio configuration (instruments, etc).
+soNG     * Background music.
+daTA     * Loose game data.
+
+(hTXT,rURL,sTOR) contain multi-language text in an identical format, multiple strings in one chunk.
+(teXT,imAG) may have separate chunks per language, using a similar format.
+
+=== gpHD: File header.
+
+Required. Must be the first chunk. Fixed length 22 bytes.
+
+  0000   4 Game version [8.8.16]
+  0004   4 Minimum GP1 version [8.8.16]
+  0008   4 Target GP1 version [8.8.16]
+  000c   4 Publication date [16.8.8=year.month.day]
+  0010   2 Framebuffer width, pixels
+  0012   2 Framebuffer height, pixels
+  0014   1 Minimum player count, typically 1
+  0015   1 Maximum player count, no more than 8 -- count shared controllers as one
+  0016
+
+=== exEC: WebAssembly executable.
+
+Required, must have exactly one.
+I recommend building with WASI SDK [https://github.com/WebAssembly/wasi-sdk/releases].
+But it's a standard format; use whatever tool you like.
+See src/gp1/gp1.h for details about entry points.
+
+TODO Consider compression.
+
+=== lANG: Language declarations.
+
+Optional, no more than one.
+Packed array of 2-character ISO 631 language codes, in order of preference.
+eg "enfrru" if it's written originally in English, and you also have French and Russian assets.
+Runtime should compare this against the user's preferred languages.
+Do not include the universal language "  ".
+
+=== hTXT: Header text
+
+  0000   8 Key
+  .... ... Strings:
+    0000   2 Language
+    0002   2 Length
+    0003 ... UTF-8 text
+  
+Key can be any ASCII string, NUL-padded at the end.
+Standard keys will always consist only of lowercase letters and digits.
+It is expected that each Key be used no more than once.
+
+Standard keys:
+  title    The game's proper title for display purposes.
+  author   Your name.
+  copyrite Brief copyright notice.
+  website  URL for disclosure to user.
+  license  EULA, or a reference to it.
+  variant  Addendum to title, eg "Tournament Edition".
+  desc     General long-form description of the game.
+
+=== teXT: Text for use in-game.
+
+Language variants must be in adjacent chunks.
+
+  0000   2 Language
+  0002 ... TOC, any number of:
+    2 String id (nonzero)
+    2 Length
+  ....   2 TOC terminator = 0
+  .... ... UTF-8 text. Total length is the sum of TOC entry lengths.
+
+TOC must be sorted by ID.  
+See gp1_get_string() in gp1/gp1.h.
+
+=== rURL: Remote host the game wants to contact.
+
+  0000   1 Host name length.
+  0001 ... Host name.
+  ....   2 Port.
+  .... ... Rationale, any number of:
+    0000   2 Language code.
+    0002   2 Length.
+    0003 ... Message.
+    
+Rationale strings may be presented to the user as "why should I allow communication with this host?".
+Note that the presence of a rURL chunk does not itself cause any communication with the host.
+These must be declared in order for gp1_http_request() and gp1_ws_connect() to work.
+
+=== sTOR: Declaration of desired persistent storage.
+
+  0000   4 Key.
+  0004   4 Minimum length in bytes.
+  0008   4 Maxmimum length in bytes.
+  .... ... Rationale, any number of:
+    0000   2 Language code.
+    0002   2 Length.
+    0003 ... Message.
+    
+Declares storage you'd like to have, on the user's machine.
+Use rationale as with rURL.
+Storage is not actually created until you write it, via gp1_store().
+(and may not be created then either, if the user declines to allow it).
+
+=== imAG: Raw graphics.
+
+Language variants for the same ID must be in adjacent chunks.
+
+  0000   4 Image ID.
+  0004   2 Language code.
+  0006   2 Width, pixels.
+  0008   2 Height, pixels.
+  000a   1 Format.
+  000b ... Filtered and compressed pixels.
+  
+You'll typically use the default two spaces for language code.
+It's provided in case you have images with embedded text, and want to translate the whole thing.
+  
+Format:
+  0x00 GP1_IMAGE_FORMAT_A1
+  0x01 GP1_IMAGE_FORMAT_A8
+  0x02 GP1_IMAGE_FORMAT_RGB565
+  0x03 GP1_IMAGE_FORMAT_ARGB1555
+  0x04 GP1_IMAGE_FORMAT_RGB888
+  0x05 GP1_IMAGE_FORMAT_RGBA8888
+
+Bitwise formats are packed big-endianly, eg:
+  For A1, the first pixel is 0x80.
+  For RGB565, the most significant bit of the first byte is the Red MSB.
+  
+Rows are padded to 1 byte.
+Pixels are first filtered using the Paeth predictor, then compressed with zlib.
+Exactly like PNG, except no filter byte per row, it's always Paeth.
+
+=== auDO: Audio configuration (instruments, etc).
+
+TODO
+
+=== soNG: Background music.
+
+  0000   4 Song ID.
+  0004 ... MIDI file.
+  
+TODO details
+
+=== daTA: Loose game data.
+
+  0000   4 Data ID.
+  0004 ... Content.

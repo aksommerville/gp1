@@ -1,0 +1,100 @@
+GP1 Input Formats for ROM Packing.
+
+When you run `gp1 pack`, what files can you provide?
+
+ROM packer's file type detection is driven entirely by file name suffix.
+
+=== *.chunk => preprocessed chunk
+
+`gp1 convertchunk` produces these files.
+
+Images, at a minimum, should do this.
+You don't want to re-encode every image at every build!
+
+Starts with the 4-byte chunk type, then payload to end of file.
+
+=== *.meta => gpHD and others
+  JSON, there must be exactly one.
+  {
+    gameVersion: "MAJOR.MINOR.REVISION" // default "0.0.0"
+    gp1VersionMin: "MAJOR.MINOR.REVISION" // default "0.0.0"
+    gp1VersionTarget: "MAJOR.MINOR.REVISION" // default current version
+    pubDate: "YEAR-MONTH-DAY" // default today
+    fbWidth: PIXELS // required
+    fbHeight: PIXELS // required
+    playerCountMin: INTEGER // default 1
+    playerCountMax: INTEGER // default playerCountMin
+    
+    languages: [ISO631...] // default infers from other content (NB order matters and that's hard to infer)
+    
+    title: STRING or [[LANGUAGE,STRING]...] // default from file names
+    copyright: '' // default empty
+    description: ''
+    author: ''
+    website: ''
+    license: ''
+    variant: ''
+    
+    net: [{
+      host: STRING
+      port: INTEGER
+      rationale: STRING or [[LANGUAGE,STRING]...] // default empty
+    }...]
+    
+    storage: [{
+      key: INTEGER
+      sizeMin: INTEGER // bytes
+      sizeMax: INTEGER
+      rationale: STRING or [[LANGUAGE,STRING]...] // default empty
+    }...]
+  }
+  
+=== *.png => imAG, 1:1
+
+File name must begin with the decimal image ID and optional language ID, eg:
+  001-my-image.png   // no lanauge
+  001en-my-image.png // same, for "en"
+  001zh.png          // same, for "zh"
+  
+If a specific pixel format is desired, put it in the file name with a dot on each side, eg:
+  001-my-image.rgb565.png
+  RGB565 and ARGB1555 can only be reached this way; all others could be inferred from image content.
+  
+=== *.mid => soNG, 1:1
+
+File name must begin with the decimal song ID, like images, but no language code.
+
+=== *.aucfg => auDO, 1:1
+
+TODO Formats not yet defined.
+
+=== *.strings => teXT
+
+.strings is a text file that may contain multiple resources.
+
+Must be UTF-8, we copy the text content verbatim.
+Processed linewise. Unquoted '#' begins a line comment.
+Empty lines are meaningless.
+
+Each non-empty line after comment removal must be:
+  ID [LANGUAGE] SPACE TEXT|QUOTED_STRING
+  
+ID is a decimal integer.
+LANGUAGE is the 2-character language code ("  ", universal, if omitted).
+SPACE is any amount of whitespace (bytes 0x20 and below, but not newlines).
+TEXT is loose text. Leading and trailing space will be stripped, can't contain newlines or '#', and can't start with '"'.
+QUOTED_STRING begins and ends with quote, apostrophe, or grave, and allows escapes like JSON.
+
+Order doesn't matter.
+
+Example:
+  001en Hello, world!
+  001fr "Bonjour, monde!"
+  001 "\uc07d\uc84b"
+  
+If multiple .strings files are provided, they must not define any of the same strings.
+
+=== *.data,*.bin => daTA
+
+Like soNG, files must begin with decimal Data ID.
+No constraints on content.
