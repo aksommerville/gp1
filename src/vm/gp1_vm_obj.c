@@ -2,10 +2,29 @@
 
 /* Delete.
  */
+ 
+void gp1_vm_drop_game(struct gp1_vm *vm) {
+  memset(vm->input_state,0,sizeof(vm->input_state));
+  if (vm->execenv) {
+    wasm_runtime_destroy_exec_env(vm->execenv);
+    vm->execenv=0;
+  }
+  if (vm->modinst) {
+    wasm_runtime_deinstantiate(vm->modinst);
+    vm->modinst=0;
+  }
+  if (vm->mod) {
+    wasm_runtime_unload(vm->mod);
+    vm->mod=0;
+  }
+  wasm_runtime_destroy();
+}
 
 void gp1_vm_del(struct gp1_vm *vm) {
   if (!vm) return;
   if (vm->refc-->1) return;
+  
+  gp1_vm_drop_game(vm);
   
   gp1_rom_del(vm->rom);
   

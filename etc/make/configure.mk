@@ -15,11 +15,11 @@ CCOPT:=-c -MMD -O3 $(foreach U,$(OPT_ENABLE),-DGP1_USE_$U=1)
 CC:=gcc $(CCOPT) $(CCWARN) $(CCINC)
 
 LD:=gcc
-LDPOST:=-lm -lvmlib -liwasm -lz -lpthread -lasound -lpulse -lpulse-simple -lGLESv2 -lGLX -lX11 -ldrm -lgbm -lEGL
+LDPOST:=-lvmlib -liwasm -lm -lz -lpthread -lasound -lpulse -lpulse-simple -lGLESv2 -lGLX -lX11 -ldrm -lgbm -lEGL
 
 AR:=ar rc
 
 CC_WASI:=$(WASI_SDK)/bin/clang -c -MMD -O3 -Isrc -I$(MIDDIR)
 #TODO --no-entry is probably wrong
-LD_WASI:=$(WASI_SDK)/bin/wasm-ld --no-entry
+LD_WASI:=$(WASI_SDK)/bin/wasm-ld --no-entry --export=gp1_init --export=gp1_update
 LDPOST_WASI:=
