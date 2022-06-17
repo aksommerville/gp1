@@ -5,7 +5,7 @@
  
 int _gp1_host_render(struct gp1_vm *vm,const void *src,int srcc) {
   struct gp1_host *host=gp1_vm_get_userdata(vm);
-  fprintf(stderr,"%s srcc=%d\n",__func__,srcc);
+  //fprintf(stderr,"%s srcc=%d\n",__func__,srcc);
   return 0;
 }
 
@@ -14,7 +14,10 @@ int _gp1_host_render(struct gp1_vm *vm,const void *src,int srcc) {
  
 int _gp1_host_store(struct gp1_vm *vm,uint32_t k,const void *v,int c) {
   struct gp1_host *host=gp1_vm_get_userdata(vm);
-  fprintf(stderr,"%s k=0x%08x c=%d\n",__func__,k,c);
+  fprintf(stderr,"%s k=0x%08x c=%d:",__func__,k,c);
+  int printc=(c>50)?50:c;
+  int i=0; for (;i<printc;i++) fprintf(stderr," %02x",((uint8_t*)v)[i]);
+  fprintf(stderr,"\n");
   return 0;
 }
 

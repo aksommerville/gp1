@@ -264,11 +264,14 @@ static int gp1_rom_decode_teXT(struct gp1_rom *rom,const uint8_t *src,int srcc,c
   // Walk the TOC again and populate our copy.
   struct gp1_string *string=rom->stringv;
   int i=tocc;
+  int rawp=srcp;
   for (srcp=2;i-->0;srcp+=4,string++) {
     string->stringid=(src[srcp]<<8)|src[srcp+1];
     string->c=(src[srcp+2]<<8)|src[srcp+3];
     string->v=rom->text+rom->textc;
+    memcpy(rom->text+rom->textc,src+rawp,string->c);
     rom->textc+=string->c;
+    rawp+=string->c;
   }
   rom->stringc=tocc;
   
@@ -621,6 +624,20 @@ int gp1_rom_string_get(void *dstpp,const struct gp1_rom *rom,uint16_t stringid) 
     else {
       *(void**)dstpp=(void*)rom->stringv[ck].v;
       return rom->stringv[ck].c;
+    }
+  }
+  return 0;
+}
+
+int gp1_rom_data_get(void *dstpp,const struct gp1_rom *rom,uint32_t dataid) {
+  int lo=0,hi=rom->datac;
+  while (lo<hi) {
+    int ck=(lo+hi)>>1;
+         if (dataid<rom->datav[ck].dataid) hi=ck;
+    else if (dataid>rom->datav[ck].dataid) lo=ck+1;
+    else {
+      *(void**)dstpp=(void*)rom->datav[ck].v;
+      return rom->datav[ck].c;
     }
   }
   return 0;

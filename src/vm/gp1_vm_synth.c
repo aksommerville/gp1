@@ -16,3 +16,11 @@ int gp1_vm_synthesize(int16_t *v,int c,struct gp1_vm *vm) {
   memset(v,0,c<<1);
   return 0;
 }
+
+/* Receive commands from wasm app.
+ */
+ 
+int gp1_vm_receive_audio_commands(struct gp1_vm *vm,const void *src,int srcc) {
+  //TODO Need to lock the client's driver -- probly a new pair of delegate hooks
+  return 0;
+}

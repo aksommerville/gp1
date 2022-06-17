@@ -21,5 +21,13 @@ AR:=ar rc
 
 CC_WASI:=$(WASI_SDK)/bin/clang -c -MMD -O3 -Isrc -I$(MIDDIR)
 #TODO --no-entry is probably wrong
-LD_WASI:=$(WASI_SDK)/bin/wasm-ld --no-entry --export=gp1_init --export=gp1_update
+
+LD_WASI:=$(WASI_SDK)/bin/wasm-ld --no-entry --allow-undefined \
+  --export=gp1_init \
+  --export=gp1_update \
+  --export-if-defined=gp1_http_response \
+  --export-if-defined=gp1_ws_connect_complete \
+  --export-if-defined=gp1_ws_receive \
+  --export-if-defined=gp1_ws_disconnected
+
 LDPOST_WASI:=

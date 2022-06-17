@@ -16,7 +16,8 @@ Prereqs:
 
 - [ ] VM
 - - [x] ROM file
-- - [ ] Execution
+- - [x] Execution
+- - [x] Linkage
 - - [ ] Renderer
 - - [ ] Synthesizer
 - - [ ] Input manager (how much of this belongs in VM, and how much in host?)

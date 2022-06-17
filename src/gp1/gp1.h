@@ -85,7 +85,7 @@ void gp1_ws_disconnected(
 #define GP1_BTNID_AUX3      0x4000
 #define GP1_BTNID_CD        0x8000
  
-uint16_t gp1_get_input_state(int32_t playerid);
+extern uint16_t gp1_get_input_state(int32_t playerid);
 
 /* Video.
  ******************************************************************/
@@ -135,6 +135,10 @@ int32_t gp1_load(void *v,int32_t a,uint32_t k);
  * The ROM can contain multiple languages; runtime selects one appropriate to the user.
  */
 int32_t gp1_get_string(char *dst,int32_t dsta,uint32_t id);
+
+/* "daTA" resources, same idea as "teXT" but no language.
+ */
+int32_t gp1_get_data(void *dst,int32_t dsta,uint32_t id);
 
 /* Network.
  ********************************************************************/
