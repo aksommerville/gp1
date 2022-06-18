@@ -1,0 +1,111 @@
+GP1 Video Commands
+
+Each command begins with a 1-byte opcode.
+Each opcode has a fixed payload length.
+Integers are big-endian, and always align to byte boundaries.
+
+Renderer has a state which is reset at the start of each batch:
+  u32    fgcolor   = 0xffffffff (rgba)
+  u32    bgcolor   = 0x00000000 (rgba)
+  u32    highlight = 0x808080ff (rgba)
+  u32    tint      = 0x00000000 (rgba)
+  u8     xform     = 0 (none)
+  u16.16 scale     = 1
+  u8     rotate    = 0 // clockwise in normalized units, ie 128 is a half turn
+  u8     srcimage  = 0 // zero is invalid
+  u8     dstimage  = 0 // zero for main output
+
+---------------------------------------------------------------------------------
+
+0x00 EOF: no payload
+
+  Signals the end of a batch.
+  This is redundant, since all batches must be delivered with an explicit length.
+
+0x01 DECLARE_COMMAND: 1 opcode, 2 length.
+
+  Inform the core of an opcode that it might not know about.
+  This only needs to be sent once per session, normally during gp1_init().
+  Caller should only do this for opcodes that it's willing to have ignored.
+  If not declared, an unknown opcode is a hard error.
+  As this is the first version of this spec, you don't need this command at all.
+
+0x02..0x0f reserved for future administrative commands.
+
+---------------------------------------------------------------------------------
+
+0x10 FGCOLOR: 4 rgba
+
+  Color for "on" bits of 1-bit images.
+
+0x11 BGCOLOR: 4 rgba
+
+  Applies to CLEAR and blits from 1-bit images.
+  
+0x12 HIGHLIGHT: 4 rgba
+
+  Pure gray pixels in source are replaced by this color.
+  White stays white, and black black, other pure grays transition smoothly through the highlight.
+  The alpha channel is multiplied by source alpha.
+  Default 0x808080ff is no-op.
+  
+0x13 TINT: 4 rgba
+
+  Each pixel in a blit is shifted toward TINT.rgb in the amount of TINT.a.
+  Default 0x00000000 is no-op.
+
+0x14 XFORM: 1 xform
+
+  Axiswise transforms in 3 bits:
+    01 xrev
+    02 yrev
+    04 swap
+  When swapped, "x" and "y" refer to the source-space axes.
+  
+0x15 SCALE: 4 scale (u16.16)
+
+  Applies to all blit commands.
+  
+0x16 ROTATE: 1 rotation
+
+  Applies to all blit commands.
+  Argument is in clockwise normal units (1/256 of a circle).
+  
+0x17 SRCIMAGE: 4 imageid
+
+  Select an image to copy from, for all blits.
+  This is the same ID as in your ROM file's "imAG" chunks.
+
+0x18 DSTIMAGE: 4 imageid
+
+  Select an image to copy to, for all commands.
+  The special image zero is the main output.
+  
+0x19..0x1f reserved for future state commands.
+
+--------------------------------------------------------------------------------
+
+0x20 CLEAR: no payload
+
+  Wipe DSTIMAGE to BGCOLOR.
+  
+0x21 COPY: 2 dstx,2 dsty
+
+  Copy SRCIMAGE on to DSTIMAGE, top left corner at the given point.
+  
+0x22 COPYSUB: 2 dstx,2 dsty,2 srcx,2 srcy,2 w,2 h
+
+  Copy a portion of SRCIMAGE on to DSTIMAGE.
+  
+0x23 TILE: 2 dstx,2 dsty,1 tileid
+
+  Slice SRCIMAGE into 16 columns and 16 rows, numbered LRTB.
+  (dstx,dsty) is the center of the destination, not the corner.
+  
+TODO Do we want geometric primitives like line, rect, oval?
+  
+0x24..0x2f reserved for future rendering commands.
+
+--------------------------------------------------------------------------------
+
+0x30..0xff reserved for unknown use.

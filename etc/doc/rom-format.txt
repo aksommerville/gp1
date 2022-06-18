@@ -157,6 +157,9 @@ Rows are padded to 1 byte.
 Pixels are first filtered using the Paeth predictor, then compressed with zlib.
 Exactly like PNG, except no filter byte per row, it's always Paeth.
 
+Pixels may be omitted, then the image will initially be filled with zeroes.
+(eg for intermediate framebuffers; you can't create those programmatically).
+
 === auDO: Audio configuration (instruments, etc).
 
 TODO

@@ -65,3 +65,4 @@ Prereqs:
 - - [ ] Build pipeline for Wasm
 - - [ ] Spawn project
 - [ ] Documentation
+- [x] Let imAG be empty, as a declaration of an intermediate framebuffer. No API for creating framebuffers live.

@@ -60,6 +60,20 @@ If a specific pixel format is desired, put it in the file name with a dot on eac
   001-my-image.rgb565.png
   RGB565 and ARGB1555 can only be reached this way; all others could be inferred from image content.
   
+=== *.img => imAG 1:1
+
+File name must have ID, like other images.
+
+File content is JSON:
+  {
+    width: INTEGER
+    height: INTEGER
+    format: "a1" | "a8" | "rgb565" | "argb1555" | "rgb888" | "rgba8888"
+  }
+  
+This creates an imAG chunk with no data, so it's initially zeroed.
+You need to do this for intermediate framebuffers, you can't create them at runtime.
+  
 === *.mid => soNG, 1:1
 
 File name must begin with the decimal song ID, like images, but no language code.

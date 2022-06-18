@@ -552,6 +552,10 @@ static int gp1_rom_decode(struct gp1_rom *rom,const uint8_t *src,int srcc,const 
             srcp+=8;
             if (srcp>srcc-6) { err=-1; break; }
             uint32_t next_id=(src[srcp]<<24)|(src[srcp+1]<<16)|(src[srcp+2]<<8)|src[srcp+3];
+            if (next_id!=current_id) {
+              srcp-=8;
+              break;
+            }
             uint16_t next_language=(src[srcp+4]<<8)|src[srcp+5];
             if (gp1_langcmp(current_language,next_language,langv,langc)>0) {
               chunk=src+srcp;
@@ -663,6 +667,7 @@ int gp1_rom_imag_search(const struct gp1_rom *rom,uint32_t imageid) {
  */
  
 struct gp1_imag *gp1_rom_imag_insert(struct gp1_rom *rom,int p,uint32_t imageid,const void *src,int srcc) {
+  if (srcc<0) return 0;
   if ((p<0)||(p>rom->imagc)) return 0;
   if (p&&(imageid<=rom->imagv[p-1].imageid)) return 0;
   if ((p<rom->imagc)&&(imageid>=rom->imagv[p].imageid)) return 0;
@@ -676,9 +681,11 @@ struct gp1_imag *gp1_rom_imag_insert(struct gp1_rom *rom,int p,uint32_t imageid,
     rom->imaga=na;
   }
   
-  void *nv=malloc(srcc);
-  if (!nv) return 0;
-  memcpy(nv,src,srcc);
+  void *nv=0;
+  if (srcc) {
+    if (!(nv=malloc(srcc))) return 0;
+    memcpy(nv,src,srcc);
+  }
   
   struct gp1_imag *imag=rom->imagv+p;
   memmove(imag+1,imag,sizeof(struct gp1_imag)*(rom->imagc-p));

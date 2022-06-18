@@ -16,6 +16,7 @@ static uint32_t gp1_guess_chunk_type(const void *src,int srcc,const char *path) 
   if (!strcmp(suffix,"gif")) return GP1_CHUNK_TYPE('i','m','A','G');
   if (!strcmp(suffix,"jpeg")) return GP1_CHUNK_TYPE('i','m','A','G');
   if (!strcmp(suffix,"webp")) return GP1_CHUNK_TYPE('i','m','A','G');
+  if (!strcmp(suffix,"img")) return GP1_CHUNK_TYPE('i','m','A','G');
   if (!strcmp(suffix,"mid")) return GP1_CHUNK_TYPE('s','o','N','G');
   if (!strcmp(suffix,"aucfg")) return GP1_CHUNK_TYPE('a','u','D','O');
   if (!strcmp(suffix,"data")) return GP1_CHUNK_TYPE('d','a','T','A');
@@ -316,6 +317,84 @@ static int gp1_convert_imAG_png(struct gp1_encoder *dst,struct png_image *png,st
   return err;
 }
 
+/* imAG from ".img" (image metadata as JSON).
+ */
+ 
+struct gp1_convert_imAG_img_context {
+  int w,h,fmt;
+  const char *srcpath;
+};
+
+static int gp1_convert_imAG_img_field(
+  struct gp1_decoder *decoder,
+  const char *k,int kc,
+  void *userdata
+) {
+  struct gp1_convert_imAG_img_context *ctx=userdata;
+  if ((kc==5)&&!memcmp(k,"width",5)) {
+    return gp1_decode_json_int(&ctx->w,decoder);
+  }
+  if ((kc==6)&&!memcmp(k,"height",6)) {
+    return gp1_decode_json_int(&ctx->h,decoder);
+  }
+  if ((kc==6)&&!memcmp(k,"format",6)) {
+    char tmp[16];
+    int tmpc=gp1_decode_json_string(tmp,sizeof(tmp),decoder);
+    if ((tmpc<0)||(tmpc>sizeof(tmp))||((ctx->fmt=gp1_image_format_eval(tmp,tmpc))<0)) {
+      fprintf(stderr,
+        "%s:%d: Failed to decode format string. Expected one of 'a1','a8','rgb565','argb1555','rgb888','rgba8888'\n",
+        ctx->srcpath,1+gp1_count_newlines(decoder->src,decoder->srcp)
+      );
+      return -2;
+    }
+    return 0;
+  }
+  fprintf(stderr,
+    "%s:%d: Ignoring unexpected image field '%.*s'\n",
+    ctx->srcpath,1+gp1_count_newlines(decoder->src,decoder->srcp),kc,k
+  );
+  return gp1_decode_json_raw(0,decoder);
+}
+ 
+static int gp1_convert_imAG_img(
+  struct gp1_encoder *dst,
+  const void *src,int srcc,
+  struct gp1_config *config,
+  const char *srcpath
+) {
+  struct gp1_decoder decoder={.src=src,.srcc=srcc};
+  struct gp1_convert_imAG_img_context ctx={
+    .srcpath=srcpath,
+  };
+  int err=gp1_decode_json_object(&decoder,gp1_convert_imAG_img_field,&ctx);
+  if (err<0) {
+    if (err!=-2) fprintf(stderr,
+      "%s:%d: Error parsing image metadata\n",
+      srcpath,1+gp1_count_newlines(decoder.src,decoder.srcc)
+    );
+    return -2;
+  }
+  
+  // Default format RGBA8888. No defaults for (w,h), they are required.
+  if ((ctx.w<1)||(ctx.h<1)) {
+    fprintf(stderr,"%s: Must provide positive 'width' and 'height'\n",srcpath);
+    return -1;
+  }
+  if ((ctx.w>0xffff)||(ctx.h>0xffff)) {
+    fprintf(stderr,"%s: Dimensions (%d,%d) too large, limit (65535,65535)\n",srcpath);
+    return -1;
+  }
+  if (!ctx.fmt) ctx.fmt=GP1_IMAGE_FORMAT_RGBA8888;
+  
+  if (
+    (gp1_encode_int16be(dst,ctx.w)<0)||
+    (gp1_encode_int16be(dst,ctx.h)<0)||
+    (gp1_encode_int8(dst,ctx.fmt)<0)
+  ) return -1;
+
+  return 0;
+}
+
 /* imAG from anything.
  */
  
@@ -334,7 +413,7 @@ static int gp1_convert_chunk_imAG(
     (gp1_encode_int16be(dst,lang)<0)
   ) return -1;
 
-  // PNG is my preferred format, and may well be the only one we support.
+  // PNG is my preferred format, and may well be the only real image format we support.
   if ((srcc>=8)&&!memcmp(src,"\x89PNG\r\n\x1a\n",8)) {
     struct png_image *png=png_decode(src,srcc);
     if (!png) {
@@ -350,6 +429,10 @@ static int gp1_convert_chunk_imAG(
     png_image_del(png);
     return 0;
   }
+  
+  // Our JSON image-metadata-only files are identifiable by the path suffix.
+  const char *suffix=gp1_get_suffix(srcpath);
+  if (!strcmp(suffix,"img")) return gp1_convert_imAG_img(dst,src,srcc,config,srcpath);
   
   fprintf(stderr,"%s: Unsupported file format. [%s:%d]\n",srcpath,__FILE__,__LINE__);
   return -2;

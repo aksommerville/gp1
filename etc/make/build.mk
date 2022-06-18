@@ -9,7 +9,6 @@ GENFILES:=$(addprefix $(MIDDIR)/, \
 
 #------------------------------------------------------------------
 # Discover sources, default C compilation.
-# TODO filter out optional units.
 
 OPT_AVAILABLE:=$(notdir $(wildcard src/opt/*))
 OPT_IGNORE:=$(filter-out $(OPT_ENABLE),$(OPT_AVAILABLE))
@@ -73,7 +72,7 @@ EXES+=$(EXES_UTEST)
 #----------------------------------------------------------------
 # Examples.
 
-EXAMPLE_DATA_CHUNK_PATTERN:=%.png %.gif %.bmp %.jpeg %.mid %.aucfg %.data %.bin
+EXAMPLE_DATA_CHUNK_PATTERN:=%.png %.gif %.bmp %.jpeg %.img %.mid %.aucfg %.data %.bin
 EXAMPLE_DATA_VERBATIM_PATTERN=%.meta %.strings
 
 define EXAMPLE_RULES # $1=name

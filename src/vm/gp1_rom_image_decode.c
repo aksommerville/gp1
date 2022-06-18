@@ -2,6 +2,7 @@
 #include "gp1/gp1.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <zlib.h>
 
 /* Calculate stride.
@@ -97,6 +98,14 @@ int gp1_rom_image_decode(
   void *dst=malloc(dstc);
   if (!dst) return -1;
   
+  // Simpler case for empty images.
+  if (!imag->c) {
+    memset(dst,0,dstc);
+    *(void**)dstpp=dst;
+    return dstc;
+  }
+  
+  // Data exists, so decompress and unfilter it.
   z_stream z={0};
   if (inflateInit(&z)<0) {
     free(dst);
