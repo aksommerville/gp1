@@ -13,9 +13,14 @@ GENFILES:=$(addprefix $(MIDDIR)/, \
 OPT_AVAILABLE:=$(notdir $(wildcard src/opt/*))
 OPT_IGNORE:=$(filter-out $(OPT_ENABLE),$(OPT_AVAILABLE))
 OPT_IGNORE_PATTERN:= \
-  $(foreach PFX,src/opt/ $(MIDDIR)/opt/ src/test/int/opt/ src/test/unit/opt/, \
-    $(addsuffix /%,$(addprefix $(PFX),$(OPT_IGNORE))) \
-  )
+  $(foreach PFX, \
+    src/opt/ \
+    $(MIDDIR)/opt/ \
+    src/vm/opt/ \
+    $(MIDDIR)/vm/opt/ \
+    src/test/int/opt/ \
+    src/test/unit/opt/ \
+  ,$(addsuffix /%,$(addprefix $(PFX),$(OPT_IGNORE))))
 
 SRCFILES:=$(filter-out $(OPT_IGNORE_PATTERN),$(shell find src -type f) $(GENFILES))
 

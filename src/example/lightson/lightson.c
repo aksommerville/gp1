@@ -1,5 +1,7 @@
 #include "gp1/gp1.h"
+#include "gp1/gp1_video_batch.h"
 
+static GP1_VIDEO_BATCH_DECLARE(video,8192)
 static uint16_t pvinput=0;
 static int32_t wsid=0;
 static int ws_connect_pending=0;
@@ -53,13 +55,12 @@ void gp1_ws_disconnected(
 }
 
 static void render_frame() {
-  char buf[1024];
-  int bufc=0;
-  //TODO populate (buf) with rendering commands
-  buf[bufc++]=11;
-  buf[bufc++]=22;
-  buf[bufc++]=33;
-  gp1_video_send(buf,bufc);
+  gp1_video_begin(&video);
+  gp1_video_bgcolor(&video,0xff8000ff);
+  gp1_video_clear(&video);
+  gp1_video_srcimage(&video,1);
+  gp1_video_copy(&video,10,10);
+  gp1_video_end(&video);
 }
 
 static void play_sound() {

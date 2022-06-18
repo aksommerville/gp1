@@ -7,7 +7,7 @@ WASI_SDK:=/home/andy/proj/thirdparty/wasi-sdk/wasi-sdk-16.0
 MIDDIR:=mid
 OUTDIR:=out
 
-OPT_ENABLE:=alsa pulse glx drm evdev
+OPT_ENABLE:=alsa pulse glx drm evdev gl2
 
 CCWARN:=-Werror -Wimplicit -Wno-overflow
 CCINC:=-Isrc -I$(MIDDIR) -I/usr/include/libdrm

@@ -11,6 +11,7 @@ struct gp1_vm;
 struct gp1_video;
 struct gp1_audio;
 struct gp1_input;
+struct gp1_renderer;
 
 struct gp1_host {
 // Caller sets directly, all WEAK:
@@ -23,6 +24,7 @@ struct gp1_host {
   struct gp1_audio *audio;
   struct gp1_input **inputv;
   int inputc,inputa;
+  struct gp1_renderer *renderer;
   int clockfaultc;
   int quit_requested;
 };

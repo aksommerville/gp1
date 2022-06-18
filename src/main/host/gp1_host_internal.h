@@ -5,6 +5,7 @@
 #include "main/gp1_cli.h"
 #include "vm/gp1_vm.h"
 #include "vm/gp1_rom.h"
+#include "vm/gp1_vm_render.h"
 #include "io/gp1_io_video.h"
 #include "io/gp1_io_audio.h"
 #include "io/gp1_io_input.h"

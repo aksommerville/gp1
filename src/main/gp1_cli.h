@@ -29,6 +29,7 @@ struct gp1_config {
   char *video_driver_name;
   char *audio_driver_name;
   char *input_driver_names; // comma-delimited
+  char *renderer_name;
   int audio_rate; // hz
   int audio_chanc;
 };

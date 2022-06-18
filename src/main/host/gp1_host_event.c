@@ -5,8 +5,7 @@
  
 int _gp1_host_render(struct gp1_vm *vm,const void *src,int srcc) {
   struct gp1_host *host=gp1_vm_get_userdata(vm);
-  //fprintf(stderr,"%s srcc=%d\n",__func__,srcc);
-  return 0;
+  return gp1_renderer_render(host->renderer,src,srcc);
 }
 
 /* Store game data.
@@ -91,6 +90,12 @@ int _gp1_host_video_resize(struct gp1_video *video,int w,int h) {
 int _gp1_host_video_key(struct gp1_video *video,int keycode,int value) {
   struct gp1_host *host=video->delegate.userdata;
   fprintf(stderr,"%s 0x%08x=%d\n",__func__,keycode,value);
+  
+  //XXX TEMP hard-code a few key bindings helpful during development
+  if (value) switch (keycode) {
+    case 0x00070029: host->quit_requested=1; break; // Escape
+  }
+  
   return 0;
 }
 

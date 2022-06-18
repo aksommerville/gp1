@@ -1,4 +1,8 @@
 #include "gp1_cli.h"
+#include "io/gp1_io_video.h"
+#include "io/gp1_io_audio.h"
+#include "io/gp1_io_input.h"
+#include "vm/gp1_vm_render.h"
 
 /* Cleanup.
  */
@@ -8,6 +12,7 @@ void gp1_config_cleanup(struct gp1_config *config) {
   if (config->video_driver_name) free(config->video_driver_name);
   if (config->audio_driver_name) free(config->audio_driver_name);
   if (config->input_driver_names) free(config->input_driver_names);
+  if (config->renderer_name) free(config->renderer_name);
   if (config->posv) {
     int i=config->posc; while (i-->0) {
       if (config->posv[i]) free(config->posv[i]);
@@ -67,14 +72,44 @@ void gp1_config_print_help(struct gp1_config *config) {
     "OPTIONS:\n"
     "  --out=PATH        Output path for pack, convertchunk.\n"
     "  --video=NAME      Video driver (run).\n"
+    "  --renderer=NAME   Render implementation (run).\n"
     "  --audio=NAME      Audio driver (run).\n"
-    "  --inputs=NAMES    Input drivers, comma delimited (run).\n"
     "  --audio-rate=HZ   Audio output rate (run).\n"
     "  --audio-chanc=1|2 Audio channel count (run).\n"
     "  --mono            same as '--audio-chanc=1'\n"
     "  --stereo          same as '--audio-chanc=2'\n"
+    "  --inputs=NAMES    Input drivers, comma delimited (run).\n"
     "\n"
   );
+  int i;
+  
+  fprintf(stderr,"Video drivers:\n");
+  const struct gp1_video_type *vtype;
+  for (i=0;vtype=gp1_video_type_by_index(i);i++) {
+    fprintf(stderr,"  %-15s %s\n",vtype->name,vtype->desc);
+  }
+  fprintf(stderr,"\n");
+  
+  fprintf(stderr,"Renderers:\n");
+  const struct gp1_renderer_type *rtype;
+  for (i=0;rtype=gp1_renderer_type_by_index(i);i++) {
+    fprintf(stderr,"  %-15s %s\n",rtype->name,rtype->desc);
+  }
+  fprintf(stderr,"\n");
+  
+  fprintf(stderr,"Audio drivers:\n");
+  const struct gp1_audio_type *atype;
+  for (i=0;atype=gp1_audio_type_by_index(i);i++) {
+    fprintf(stderr,"  %-15s %s\n",atype->name,atype->desc);
+  }
+  fprintf(stderr,"\n");
+  
+  fprintf(stderr,"Input drivers:\n");
+  const struct gp1_input_type *itype;
+  for (i=0;itype=gp1_input_type_by_index(i);i++) {
+    fprintf(stderr,"  %-15s %s\n",itype->name,itype->desc);
+  }
+  fprintf(stderr,"\n");
 }
 
 /* Receive key=value argument.
@@ -119,6 +154,7 @@ static int gp1_config_kv(struct gp1_config *config,const char *k,int kc,const ch
   STRINGPARAM(video_driver_name,"video")
   STRINGPARAM(audio_driver_name,"audio")
   STRINGPARAM(input_driver_names,"inputs")
+  STRINGPARAM(renderer_name,"renderer")
   INTPARAM(audio_rate,"audio-rate",200,200000)
   INTPARAM(audio_chanc,"audio-chanc",1,2)
   

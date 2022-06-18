@@ -62,7 +62,7 @@ static inline void gp1_video_declare_command(struct gp1_video_batch *batch,uint8
 #define GP1_COLOR_COMMAND(tag,opcode) \
   static inline void gp1_video_##tag(struct gp1_video_batch *batch,uint32_t rgba) { \
     GP1_VIDEO_BATCH_REQUIRE(5) \
-    GP1_VIDEO_APPEND8(opcode) \
+    GP1_VIDEO_APPEND8(GP1_VIDEO_OP_##opcode) \
     GP1_VIDEO_APPEND8(rgba>>24) \
     GP1_VIDEO_APPEND8(rgba>>16) \
     GP1_VIDEO_APPEND8(rgba>>8) \
@@ -70,7 +70,7 @@ static inline void gp1_video_declare_command(struct gp1_video_batch *batch,uint8
   } \
   static inline void gp1_video_##tag##_split(struct gp1_video_batch *batch,uint8_t r,uint8_t g,uint8_t b,uint8_t a) { \
     GP1_VIDEO_BATCH_REQUIRE(5) \
-    GP1_VIDEO_APPEND8(opcode) \
+    GP1_VIDEO_APPEND8(GP1_VIDEO_OP_##opcode) \
     GP1_VIDEO_APPEND8(r) \
     GP1_VIDEO_APPEND8(g) \
     GP1_VIDEO_APPEND8(b) \

@@ -18,7 +18,7 @@ struct gp1_vm_delegate {
   
   /* Render a stream of commands.
    * There's any number of strategies you might employ, and the VM doesn't favor one.
-   * Helpers for specific strategies will be provided somewhere. TODO
+   * See gp1_vm_render.h for built-in renderers.
    */
   int (*render)(struct gp1_vm *vm,const void *src,int srcc);
   

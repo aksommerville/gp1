@@ -22,6 +22,7 @@ static void gp1_host_rcvsig(int sigid) {
 void gp1_host_cleanup(struct gp1_host *host) {
   gp1_audio_play(host->audio,0);
   
+  gp1_renderer_del(host->renderer);
   gp1_vm_del(host->vm);
   gp1_video_del(host->video);
   gp1_audio_del(host->audio);
@@ -87,6 +88,12 @@ static int gp1_host_init_video_driver_1(struct gp1_host *host,const struct gp1_v
   }
   return 0;
 }
+
+static int gp1_host_init_renderer_1(struct gp1_host *host,const struct gp1_renderer_type *type) {
+  if (!(host->renderer=gp1_renderer_new(type))) return -1;
+  //TODO Do the video driver and renderer need to be introduced to each other?
+  return 0;
+}
   
 static int gp1_host_init_video_driver(struct gp1_host *host) {
   if (host->config->video_driver_name) {
@@ -110,6 +117,29 @@ static int gp1_host_init_video_driver(struct gp1_host *host) {
     }
   }
   fprintf(stderr,"%s: Using video driver '%s'\n",host->config->exename,host->video->type->name);
+  
+  if (host->config->renderer_name) {
+    const struct gp1_renderer_type *type=gp1_renderer_type_by_name(host->config->renderer_name,-1);
+    if (!type) {
+      fprintf(stderr,"%s: Renderer '%s' not found.\n",host->config->exename,host->config->renderer_name);
+      return -1;
+    }
+    if (gp1_host_init_renderer_1(host,type)<0) {
+      fprintf(stderr,"%s: Failed to initialize renderer '%s'.\n",host->config->exename,type->name);
+      return -1;
+    }
+  } else {
+    int p=0; for (;;p++) {
+      const struct gp1_renderer_type *type=gp1_renderer_type_by_index(p);
+      if (!type) {
+        fprintf(stderr,"%s: Failed to initialize any renderer.\n",host->config->exename);
+        return -1;
+      }
+      if (gp1_host_init_renderer_1(host,type)>=0) break;
+    }
+  }
+  fprintf(stderr,"%s: Using renderer '%s'\n",host->config->exename,host->renderer->type->name);
+  
   return 0;
 }
 

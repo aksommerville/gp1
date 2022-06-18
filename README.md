@@ -19,6 +19,10 @@ Prereqs:
 - - [x] Execution
 - - [x] Linkage
 - - [ ] Renderer
+- - [ ] Software renderer
+- - [ ] Vulkan?
+- - [ ] Metal?
+- - [ ] Direct3d?
 - - [ ] Synthesizer
 - - [ ] Input manager (how much of this belongs in VM, and how much in host?)
 - [ ] I/O library
@@ -28,8 +32,6 @@ Prereqs:
 - - - [ ] Is it kosher as is, or do we need a separate "begin frame" hook?
 - - [ ] MacOS video driver
 - - [ ] Windows video driver
-- - [ ] Vulkan?
-- - [ ] Metal?
 - - [x] ALSA driver
 - - [x] PulseAudio driver
 - - [ ] MacOS audio driver
@@ -53,7 +55,7 @@ Prereqs:
 - - [ ] Play a song
 - [ ] Native host
 - - [ ] General GUI
-- - [ ] --help, show available drivers
+- - [x] --help, show available drivers
 - [ ] Web host
 - - [ ] Execution
 - - [ ] Renderer
