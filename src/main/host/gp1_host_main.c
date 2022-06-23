@@ -139,6 +139,12 @@ static int gp1_host_init_video_driver(struct gp1_host *host) {
     }
   }
   fprintf(stderr,"%s: Using renderer '%s'\n",host->config->exename,host->renderer->type->name);
+  host->renderer->mainw=host->video->w;
+  host->renderer->mainh=host->video->h;
+  if (gp1_renderer_set_rom(host->renderer,host->rom)<0) {
+    fprintf(stderr,"%s: Failed to attach ROM file to renderer '%s'\n",host->config->exename,host->renderer->type->name);
+    return -1;
+  }
   
   return 0;
 }
@@ -339,7 +345,10 @@ int gp1_host_run(struct gp1_host *host) {
       break;
     }
     
-    if ((err=gp1_video_swap(host->video))<0) {
+    if (
+      ((err=gp1_renderer_end_frame(host->renderer))<0)||
+      ((err=gp1_video_swap(host->video))<0)
+    ) {
       fprintf(stderr,"%s: Error delivering video frame.\n",host->config->exename);
       break;
     }

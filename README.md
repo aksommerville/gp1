@@ -18,7 +18,7 @@ Prereqs:
 - - [x] ROM file
 - - [x] Execution
 - - [x] Linkage
-- - [ ] Renderer
+- - [x] Renderer
 - - [ ] Software renderer
 - - [ ] Vulkan?
 - - [ ] Metal?
@@ -68,3 +68,5 @@ Prereqs:
 - - [ ] Spawn project
 - [ ] Documentation
 - [x] Let imAG be empty, as a declaration of an intermediate framebuffer. No API for creating framebuffers live.
+- [ ] Add a "don't use implicitly" flag for nullrender (add to all driver types)
+- [ ] gl2: non-square tiles

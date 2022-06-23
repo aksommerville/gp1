@@ -111,17 +111,18 @@ uint16_t gp1_get_input_state(int32_t playerid);
 #define GP1_VIDEO_OP_DECLARE_COMMAND 0x01 /* (1 op,2 len) */
 #define GP1_VIDEO_OP_FGCOLOR         0x10 /* (4 rgba) */
 #define GP1_VIDEO_OP_BGCOLOR         0x11 /* (4 rgba) */
-#define GP1_VIDEO_OP_HIGHLIGHT       0x12 /* (4 rgba) */
-#define GP1_VIDEO_OP_TINT            0x13 /* (4 rgba) */
-#define GP1_VIDEO_OP_XFORM           0x14 /* (1 xform) */
-#define GP1_VIDEO_OP_SCALE           0x15 /* (u16.16 scale) */
-#define GP1_VIDEO_OP_ROTATE          0x16 /* (1 rotation) */
-#define GP1_VIDEO_OP_SRCIMAGE        0x18 /* (4 imageid) */
-#define GP1_VIDEO_OP_DSTIMAGE        0x19 /* (4 imageid) */
+#define GP1_VIDEO_OP_XFORM           0x12 /* (1 xform) */
+#define GP1_VIDEO_OP_SRCIMAGE        0x13 /* (4 imageid) */
+#define GP1_VIDEO_OP_DSTIMAGE        0x14 /* (4 imageid) */
 #define GP1_VIDEO_OP_CLEAR           0x20 /* () */
 #define GP1_VIDEO_OP_COPY            0x21 /* (2 dstx,2 dsty) */
 #define GP1_VIDEO_OP_COPYSUB         0x22 /* (2 dstx,2 dsty,2 srcx,2 srcy,2 w,2 h) */
 #define GP1_VIDEO_OP_TILE            0x23 /* (2 dstx,2 dsty,1 tileid) */
+
+#define GP1_XFORM_NONE 0
+#define GP1_XFORM_XREV 1
+#define GP1_XFORM_YREV 2
+#define GP1_XFORM_SWAP 4
  
 /* Send a batch of encoded video commands.
  * Each batch runs against a clean state, and the same framebuffer content left over from the last batch.
@@ -193,5 +194,19 @@ int32_t gp1_ws_send(
 void gp1_ws_disconnect(int32_t wsid);
 
 //TODO other things to expose to clients.... clock?
+
+/* libc functions explicitly provided by gp1.
+ *********************************************************************/
+ 
+#if 0 // Use your compiler's libc headers; this section is documentation only.
+
+// stdlib.h
+int rand();
+void *malloc(size_t len);
+void *calloc(size_t c,size_t size);
+void *realloc(void *p,size_t len);
+void free(void *p);
+
+#endif
  
 #endif

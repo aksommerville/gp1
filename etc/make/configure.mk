@@ -15,7 +15,7 @@ CCOPT:=-c -MMD -O3 $(foreach U,$(OPT_ENABLE),-DGP1_USE_$U=1)
 CC:=gcc $(CCOPT) $(CCWARN) $(CCINC)
 
 LD:=gcc
-LDPOST:=-lvmlib -liwasm -lm -lz -lpthread -lasound -lpulse -lpulse-simple -lGLESv2 -lGLX -lX11 -ldrm -lgbm -lEGL
+LDPOST:=-lvmlib -liwasm -lm -lz -lpthread -lasound -lpulse -lpulse-simple -lGL -lGLESv2 -lGLX -lX11 -ldrm -lgbm -lEGL
 
 AR:=ar rc
 

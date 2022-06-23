@@ -9,6 +9,7 @@
 
 struct gp1_renderer;
 struct gp1_renderer_type;
+struct gp1_rom;
 
 // Artificial sanity limit on image sizes, either axis.
 #define GP1_IMAGE_SIZE_LIMIT 8192
@@ -16,6 +17,8 @@ struct gp1_renderer_type;
 struct gp1_renderer {
   const struct gp1_renderer_type *type;
   int refc;
+  struct gp1_rom *rom;
+  int mainw,mainh; // Owner should set directly
 };
 
 void gp1_renderer_del(struct gp1_renderer *renderer);
@@ -23,16 +26,10 @@ int gp1_renderer_ref(struct gp1_renderer *renderer);
 
 struct gp1_renderer *gp1_renderer_new(const struct gp1_renderer_type *type);
 
-/* Stride must be the minimum, padded to one byte.
- * (srcc) is knowable from (w,h,format) but you must provide it anyway as an assertion.
- */
-int gp1_renderer_load_image(
-  struct gp1_renderer *renderer,
-  int imageid,int w,int h,int format,
-  const void *src,int srcc
-);
+int gp1_renderer_set_rom(struct gp1_renderer *renderer,struct gp1_rom *rom);
 
 int gp1_renderer_render(struct gp1_renderer *renderer,const void *src,int srcc);
+int gp1_renderer_end_frame(struct gp1_renderer *renderer);
 
 struct gp1_renderer_type {
   const char *name;
@@ -41,14 +38,20 @@ struct gp1_renderer_type {
   void (*del)(struct gp1_renderer *renderer);
   int (*init)(struct gp1_renderer *renderer);
   
-  // Wrapper validates that (srcc) agrees with (w,h,format).
-  // (and implicitly, that format is valid)
-  int (*load_image)(struct gp1_renderer *renderer,int imageid,int w,int h,int stride,int format,const void *src,int srcc);
+  // Clear image cache, etc.
+  int (*rom_changed)(struct gp1_renderer *renderer);
   
   int (*render)(struct gp1_renderer *renderer,const void *src,int srcc);
+  int (*end_frame)(struct gp1_renderer *renderer);
 };
 
 const struct gp1_renderer_type *gp1_renderer_type_by_index(int p);
 const struct gp1_renderer_type *gp1_renderer_type_by_name(const char *src,int srcc);
+
+int gp1_image_calculate_stride(int format,int w);
+
+/* Input must have minimum stride, output will too.
+ */
+void *gp1_convert_image(int dstfmt,const void *src,int w,int h,int srcfmt);
 
 #endif

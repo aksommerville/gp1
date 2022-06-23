@@ -61,7 +61,6 @@ int _gp1_host_ws_send(struct gp1_vm *vm,int wsid,const void *src,int srcc) {
 
 int _gp1_host_video_close(struct gp1_video *video) {
   struct gp1_host *host=video->delegate.userdata;
-  fprintf(stderr,"%s\n",__func__);
   host->quit_requested=1;
   return 0;
 }
@@ -80,7 +79,10 @@ int _gp1_host_video_focus(struct gp1_video *video,int focus) {
  
 int _gp1_host_video_resize(struct gp1_video *video,int w,int h) {
   struct gp1_host *host=video->delegate.userdata;
-  fprintf(stderr,"%s %d,%d\n",__func__,w,h);
+  if (host->renderer) {
+    host->renderer->mainw=w;
+    host->renderer->mainh=h;
+  }
   return 0;
 }
 
@@ -94,6 +96,7 @@ int _gp1_host_video_key(struct gp1_video *video,int keycode,int value) {
   //XXX TEMP hard-code a few key bindings helpful during development
   if (value) switch (keycode) {
     case 0x00070029: host->quit_requested=1; break; // Escape
+    case 0x00070044: gp1_video_set_fullscreen(host->video,-1); break; // F11
   }
   
   return 0;

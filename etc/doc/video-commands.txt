@@ -7,11 +7,7 @@ Integers are big-endian, and always align to byte boundaries.
 Renderer has a state which is reset at the start of each batch:
   u32    fgcolor   = 0xffffffff (rgba)
   u32    bgcolor   = 0x00000000 (rgba)
-  u32    highlight = 0x808080ff (rgba)
-  u32    tint      = 0x00000000 (rgba)
   u8     xform     = 0 (none)
-  u16.16 scale     = 1
-  u8     rotate    = 0 // clockwise in normalized units, ie 128 is a half turn
   u8     srcimage  = 0 // zero is invalid
   u8     dstimage  = 0 // zero for main output
 
@@ -41,20 +37,8 @@ Renderer has a state which is reset at the start of each batch:
 0x11 BGCOLOR: 4 rgba
 
   Applies to CLEAR and blits from 1-bit images.
-  
-0x12 HIGHLIGHT: 4 rgba
 
-  Pure gray pixels in source are replaced by this color.
-  White stays white, and black black, other pure grays transition smoothly through the highlight.
-  The alpha channel is multiplied by source alpha.
-  Default 0x808080ff is no-op.
-  
-0x13 TINT: 4 rgba
-
-  Each pixel in a blit is shifted toward TINT.rgb in the amount of TINT.a.
-  Default 0x00000000 is no-op.
-
-0x14 XFORM: 1 xform
+0x12 XFORM: 1 xform
 
   Axiswise transforms in 3 bits:
     01 xrev
@@ -62,26 +46,17 @@ Renderer has a state which is reset at the start of each batch:
     04 swap
   When swapped, "x" and "y" refer to the source-space axes.
   
-0x15 SCALE: 4 scale (u16.16)
-
-  Applies to all blit commands.
-  
-0x16 ROTATE: 1 rotation
-
-  Applies to all blit commands.
-  Argument is in clockwise normal units (1/256 of a circle).
-  
-0x17 SRCIMAGE: 4 imageid
+0x13 SRCIMAGE: 4 imageid
 
   Select an image to copy from, for all blits.
   This is the same ID as in your ROM file's "imAG" chunks.
 
-0x18 DSTIMAGE: 4 imageid
+0x14 DSTIMAGE: 4 imageid
 
   Select an image to copy to, for all commands.
   The special image zero is the main output.
   
-0x19..0x1f reserved for future state commands.
+0x15..0x1f reserved for future state commands.
 
 --------------------------------------------------------------------------------
 
@@ -101,6 +76,9 @@ Renderer has a state which is reset at the start of each batch:
 
   Slice SRCIMAGE into 16 columns and 16 rows, numbered LRTB.
   (dstx,dsty) is the center of the destination, not the corner.
+  
+  !!! Currently with the gl2 renderer, tiles must be square. !!!
+  I mean to lift that limit eventually.
   
 TODO Do we want geometric primitives like line, rect, oval?
   

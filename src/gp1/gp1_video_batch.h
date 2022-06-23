@@ -8,7 +8,7 @@
 struct gp1_video_batch {
   int32_t c,a;
   uint8_t ok;
-  uint8_t v[];
+  uint8_t *v;
 };
 
 /* Find the (size) in bytes that fits your most complex scene.
@@ -16,7 +16,8 @@ struct gp1_video_batch {
  * Not a big deal to provide more than you need, so aim high.
  */
 #define GP1_VIDEO_BATCH_DECLARE(name,size) \
-  struct gp1_video_batch name={.a=size};
+  static uint8_t _gp1_video_batch_storage_##name[size]; \
+  static struct gp1_video_batch name={.a=size,.v=_gp1_video_batch_storage_##name};
   
 /* "begin" and "end" to begin and end.
  * If we run out of space along the way, "end" reports an error.
@@ -79,32 +80,11 @@ static inline void gp1_video_declare_command(struct gp1_video_batch *batch,uint8
   
 GP1_COLOR_COMMAND(fgcolor,FGCOLOR)
 GP1_COLOR_COMMAND(bgcolor,BGCOLOR)
-GP1_COLOR_COMMAND(highlight,HIGHLIGHT)
-GP1_COLOR_COMMAND(tint,TINT)
 
 static inline void gp1_video_xform(struct gp1_video_batch *batch,uint8_t xform) {
   GP1_VIDEO_BATCH_REQUIRE(2)
   GP1_VIDEO_APPEND8(GP1_VIDEO_OP_XFORM)
   GP1_VIDEO_APPEND8(xform)
-}
-
-static inline void gp1_video_scale(struct gp1_video_batch *batch,uint32_t scale_16_16) {
-  GP1_VIDEO_BATCH_REQUIRE(5)
-  GP1_VIDEO_APPEND8(GP1_VIDEO_OP_SCALE)
-  GP1_VIDEO_APPEND8(scale_16_16>>24)
-  GP1_VIDEO_APPEND8(scale_16_16>>16)
-  GP1_VIDEO_APPEND8(scale_16_16>>8)
-  GP1_VIDEO_APPEND8(scale_16_16)
-}
-
-static inline void gp1_video_scalef(struct gp1_video_batch *batch,float scale) {
-  gp1_video_scale(batch,(uint32_t)(scale*65536.0f));
-}
-
-static inline void gp1_video_rotate(struct gp1_video_batch *batch,uint8_t rotation) {
-  GP1_VIDEO_BATCH_REQUIRE(2)
-  GP1_VIDEO_APPEND8(GP1_VIDEO_OP_ROTATE)
-  GP1_VIDEO_APPEND8(rotation)
 }
 
 static inline void gp1_video_srcimage(struct gp1_video_batch *batch,uint32_t imageid) {

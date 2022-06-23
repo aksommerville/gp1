@@ -3,7 +3,11 @@
 /* TOC, native functions exposed to wasm code.
  */
  
+static int rand_wrapper(wasm_exec_env_t execenv) { return rand(); }
+ 
 static NativeSymbol gp1_vm_native_symbols[]={
+
+  // gp1
   EXPORT_WASM_API2(gp1_get_input_state),
   EXPORT_WASM_API2(gp1_video_send),
   EXPORT_WASM_API2(gp1_audio_send),
@@ -15,6 +19,9 @@ static NativeSymbol gp1_vm_native_symbols[]={
   EXPORT_WASM_API2(gp1_ws_connect),
   EXPORT_WASM_API2(gp1_ws_send),
   EXPORT_WASM_API2(gp1_ws_disconnect),
+  
+  // libc
+  EXPORT_WASM_API2(rand),
 };
 
 /* Initialize game.

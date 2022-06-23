@@ -1,4 +1,5 @@
 #include "gp1_vm_render.h"
+#include "gp1_rom.h"
 #include "gp1/gp1.h"
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@ static const struct gp1_renderer_type *gp1_renderer_typev[]={
 //TODO metal?
 //TODO direct3d?
 //TODO vulkan?
-  &gp1_renderer_type_nullrender,
+//  &gp1_renderer_type_nullrender,//XXX temporarily disabled so i can fail sanely. TODO add a "not as a fallback" flag
 };
 
 const struct gp1_renderer_type *gp1_renderer_type_by_index(int p) {
@@ -48,6 +49,7 @@ void gp1_renderer_del(struct gp1_renderer *renderer) {
   if (!renderer) return;
   if (renderer->refc-->1) return;
   if (renderer->type->del) renderer->type->del(renderer);
+  gp1_rom_del(renderer->rom);
   free(renderer);
 }
 
@@ -72,30 +74,24 @@ struct gp1_renderer *gp1_renderer_new(const struct gp1_renderer_type *type) {
   return renderer;
 }
 
-int gp1_renderer_load_image(
-  struct gp1_renderer *renderer,
-  int imageid,int w,int h,int format,
-  const void *src,int srcc
-) {
-  if (!renderer||!renderer->type->load_image) return -1;
-  if ((w<1)||(h<1)||(w>GP1_IMAGE_SIZE_LIMIT)||(h>GP1_IMAGE_SIZE_LIMIT)) return -1;
-  if ((srcc<1)||!src) return -1;
-  int stride;
-  switch (format) {
-    case GP1_IMAGE_FORMAT_A1: stride=(w+7)>>3; break;
-    case GP1_IMAGE_FORMAT_A8: stride=w; break;
-    case GP1_IMAGE_FORMAT_RGB565: stride=w<<1; break;
-    case GP1_IMAGE_FORMAT_ARGB1555: stride=w<<1; break;
-    case GP1_IMAGE_FORMAT_RGB888: stride=w*3; break;
-    case GP1_IMAGE_FORMAT_RGBA8888: stride=w<<2; break;
-    default: return -1;
+int gp1_renderer_set_rom(struct gp1_renderer *renderer,struct gp1_rom *rom) {
+  if (renderer->rom==rom) return 0;
+  if (rom&&(gp1_rom_ref(rom)<0)) return -1;
+  gp1_rom_del(renderer->rom);
+  renderer->rom=rom;
+  if (renderer->type->rom_changed) {
+    if (renderer->type->rom_changed(renderer)<0) return -1;
   }
-  if (stride>srcc/h) return -1;
-  return renderer->type->load_image(renderer,imageid,w,h,stride,format,src,srcc);
+  return 0;
 }
 
 int gp1_renderer_render(struct gp1_renderer *renderer,const void *src,int srcc) {
   if (!src||(srcc<1)) return 0;
   if (!renderer||!renderer->type->render) return -1;
   return renderer->type->render(renderer,src,srcc);
+}
+
+int gp1_renderer_end_frame(struct gp1_renderer *renderer) {
+  if (!renderer->type->end_frame) return 0;
+  return renderer->type->end_frame(renderer);
 }

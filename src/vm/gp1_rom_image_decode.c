@@ -1,25 +1,10 @@
 #include "gp1_rom.h"
+#include "gp1_vm_render.h"
 #include "gp1/gp1.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <zlib.h>
-
-/* Calculate stride.
- */
- 
-static int gp1_image_calculate_stride(int format,int w) {
-  if (w<1) return -1;
-  switch (format) {
-    case GP1_IMAGE_FORMAT_A1: return (w+7)>>3;
-    case GP1_IMAGE_FORMAT_A8: return w;
-    case GP1_IMAGE_FORMAT_RGB565: return w<<1;
-    case GP1_IMAGE_FORMAT_ARGB1555: return w<<1;
-    case GP1_IMAGE_FORMAT_RGB888: return w*3;
-    case GP1_IMAGE_FORMAT_RGBA8888: return w<<2;
-  }
-  return -1;
-}
 
 /* Unfilter one row.
  */

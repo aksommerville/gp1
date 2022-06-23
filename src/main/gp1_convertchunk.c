@@ -220,8 +220,10 @@ static void gp1_filter_pixel_row(
   int c,
   int xstride
 ) {
-  memcpy(dst,prv,xstride);
-  int i=xstride;
+  int i=0;
+  for (;i<xstride;i++) {
+    dst[i]=src[i]-prv[i];
+  }
   for (;i<c;i++) {
     dst[i]=src[i]-gp1_paeth(src[i-xstride],prv[i],prv[i-xstride]);
   }
