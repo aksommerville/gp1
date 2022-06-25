@@ -4,7 +4,9 @@ Each command begins with a 1-byte opcode.
 Each opcode has a fixed payload length.
 Integers are big-endian, and always align to byte boundaries.
 
-Renderer has a state which is reset at the start of each batch:
+The longest command is currently 13 bytes (0x22 COPYSUB).
+
+Renderer has a state which is reset at the start of each frame:
   u32    fgcolor   = 0xffffffff (rgba)
   u32    bgcolor   = 0x00000000 (rgba)
   u8     xform     = 0 (none)
@@ -15,8 +17,13 @@ Renderer has a state which is reset at the start of each batch:
 
 0x00 EOF: no payload
 
-  Signals the end of a batch.
-  This is redundant, since all batches must be delivered with an explicit length.
+  Signals the end of a frame.
+  Renderer should queue the frame for delivery and reset its state.
+  Must be the last command you send each frame.
+  
+  This is redundant in the current implementation, because gp1_update() is called at video frame cadence.
+  But you must send it anyway in order to maintain proper stream semantics.
+  In theory, the renderer could be completely detached from the rest of GP1.
 
 0x01 DECLARE_COMMAND: 1 opcode, 2 length.
 

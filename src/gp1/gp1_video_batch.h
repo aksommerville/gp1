@@ -7,34 +7,31 @@
 
 struct gp1_video_batch {
   int32_t c,a;
-  uint8_t ok;
+  int32_t stopp;
   uint8_t *v;
 };
 
-/* Find the (size) in bytes that fits your most complex scene.
- * A sprite is 6 (tile) or 13 (copysub) bytes.
- * Not a big deal to provide more than you need, so aim high.
+#define GP1_LONGEST_VIDEO_COMMAND 13
+
+/* (size) is somewhat arbitrary. Must be at least GP1_LONGEST_VIDEO_COMMAND. Aim high.
+ * Ideally it's large enough to contain an entire frame of video.
  */
 #define GP1_VIDEO_BATCH_DECLARE(name,size) \
   static uint8_t _gp1_video_batch_storage_##name[size]; \
-  static struct gp1_video_batch name={.a=size,.v=_gp1_video_batch_storage_##name};
+  static struct gp1_video_batch name={.a=size,.stopp=(size)-GP1_LONGEST_VIDEO_COMMAND,.v=_gp1_video_batch_storage_##name};
   
-/* "begin" and "end" to begin and end.
- * If we run out of space along the way, "end" reports an error.
+/* Manually drop queued commands or send them.
+ * In normal use you shouldn't need these. (you get an implicit flush at "eof").
  */
   
-static inline void gp1_video_begin(struct gp1_video_batch *batch) {
+static inline void gp1_video_drop(struct gp1_video_batch *batch) {
   batch->c=0;
-  batch->ok=1;
 }
 
-static inline int32_t gp1_video_end(struct gp1_video_batch *batch) {
-  if (batch->ok) {
+static inline void gp1_video_flush(struct gp1_video_batch *batch) {
+  if (batch->c) {
     gp1_video_send(batch->v,batch->c);
-    batch->ok=0;
-    return 0;
-  } else {
-    return -1;
+    batch->c=0;
   }
 }
 
@@ -42,7 +39,10 @@ static inline int32_t gp1_video_end(struct gp1_video_batch *batch) {
  */
   
 #define GP1_VIDEO_BATCH_REQUIRE(addc) \
-  if (!batch->ok||(batch->c>batch->a-addc)) { batch->ok=0; return; }
+  if (batch->c>batch->stopp) { \
+    gp1_video_send(batch->v,batch->c); \
+    batch->c=0; \
+  }
 
 // Caller must assert length first. 
 #define GP1_VIDEO_APPEND8(n) batch->v[batch->c++]=n;
@@ -50,6 +50,7 @@ static inline int32_t gp1_video_end(struct gp1_video_batch *batch) {
 static inline void gp1_video_eof(struct gp1_video_batch *batch) {
   GP1_VIDEO_BATCH_REQUIRE(1)
   GP1_VIDEO_APPEND8(GP1_VIDEO_OP_EOF)
+  gp1_video_flush(batch);
 }
 
 static inline void gp1_video_declare_command(struct gp1_video_batch *batch,uint8_t opcode,uint16_t len) {

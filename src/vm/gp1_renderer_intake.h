@@ -46,7 +46,13 @@ struct gp1_render_tile {
   struct gp1_render_tile tilev[GP1_RENDERER_INTAKE_TILE_LIMIT]; \
   
 #define GP1_RENDERER_INTAKE_INIT \
-  memset(RENDERER->xoplenv,-1,sizeof(RENDERER->xoplenv));
+  memset(RENDERER->xoplenv,-1,sizeof(RENDERER->xoplenv)); \
+\
+  RENDERER->state.fgcolor=0xffffffff; \
+  RENDERER->state.bgcolor=0x00000000; \
+  RENDERER->state.xform=0; \
+  RENDERER->state.srcimageid=0; \
+  RENDERER->state.dstimageid=0; \
 
 #define _GP1_RENDERER_INTAKE_REQUIRE(c) { \
   if (srcp>srcc-(c)) { \
@@ -70,19 +76,19 @@ struct gp1_render_tile {
 #define GP1_RENDERER_INTAKE_RENDER(tag) \
 static int _gp1_##tag##_render(struct gp1_renderer *renderer,const void *src,int srcc) { \
 \
-  RENDERER->state.fgcolor=0xffffffff; \
-  RENDERER->state.bgcolor=0x00000000; \
-  RENDERER->state.xform=0; \
-  RENDERER->state.srcimageid=0; \
-  RENDERER->state.dstimageid=0; \
-\
   const uint8_t *SRC=src; \
   int srcp=0; \
   while (srcp<srcc) { \
     uint8_t opcode=SRC[srcp++]; \
     switch (opcode) { \
 \
-      case GP1_VIDEO_OP_EOF: return 0; \
+      case GP1_VIDEO_OP_EOF: { \
+          RENDERER->state.fgcolor=0xffffffff; \
+          RENDERER->state.bgcolor=0x00000000; \
+          RENDERER->state.xform=0; \
+          RENDERER->state.srcimageid=0; \
+          RENDERER->state.dstimageid=0; \
+        } break; \
 \
       case GP1_VIDEO_OP_DECLARE_COMMAND: { \
           _GP1_RENDERER_INTAKE_REQUIRE(3) \

@@ -12,7 +12,7 @@
 #define TILESIZE 16
 #define BIGTILESIZE 32 /* 003-big-tiles.png */
 
-GP1_VIDEO_BATCH_DECLARE(video,8192*16)
+GP1_VIDEO_BATCH_DECLARE(video,8192)
 static uint16_t pvinput=0;
 static int32_t wsid=0;
 static int ws_connect_pending=0;
@@ -205,14 +205,13 @@ static void render_1bit_tiles(int16_t x,int16_t y) {
 
 static void render_frame() {
   
-  gp1_video_begin(&video);
   gp1_video_bgcolor(&video,0x604020ff); // brown
   gp1_video_clear(&video);
   
   render_xform_exposition(0,0);
   render_1bit_tiles(0,55);
   
-  gp1_video_end(&video);
+  gp1_video_eof(&video);
 }
 
 static void play_sound() {
