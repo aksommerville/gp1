@@ -22,6 +22,7 @@ static void gp1_host_rcvsig(int sigid) {
 void gp1_host_cleanup(struct gp1_host *host) {
   gp1_audio_play(host->audio,0);
   
+  gp1_inmgr_del(host->inmgr);
   gp1_renderer_del(host->renderer);
   gp1_vm_del(host->vm);
   gp1_video_del(host->video);
@@ -220,8 +221,42 @@ static int gp1_host_init_input_driver_1(struct gp1_host *host,const struct gp1_i
   host->inputv[host->inputc++]=input;
   return 0;
 }
+
+static int _gp1_host_action_eval(struct gp1_inmgr *inmgr,const char *src,int srcc) {
+  return gp1_host_action_eval(src,srcc);
+}
+
+static int _gp1_host_action_repr(char *dst,int dsta,struct gp1_inmgr *inmgr,int action) {
+  return gp1_host_action_repr(dst,dsta,action);
+}
   
 static int gp1_host_init_input_drivers(struct gp1_host *host) {
+
+  struct gp1_inmgr_delegate delegate={
+    .userdata=host,
+    .state=_gp1_host_inmgr_state,
+    .action=_gp1_host_inmgr_action,
+    .btnid_eval=_gp1_host_action_eval,
+    .btnid_repr=_gp1_host_action_repr,
+  };
+  if (!(host->inmgr=gp1_inmgr_new(&delegate))) {
+    fprintf(stderr,"%s: Failed to initialize input manager.\n",host->config->exename);
+    return -1;
+  }
+  if (host->config->input_config_path) {
+    int err=gp1_inmgr_configure_file(host->inmgr,host->config->input_config_path,0);
+    if (err<0) return -1;
+    if (!err) {
+      fprintf(stderr,"%s:WARNING: Input config file not found or failed to read.\n",host->config->input_config_path);
+    }
+  }
+  if (host->video->type->provides_system_keyboard) {
+    if (gp1_inmgr_has_system_keyboard(host->inmgr,1)<0) {
+      fprintf(stderr,"%s: Error configuring system keyboard.\n",host->config->exename);
+      return -1;
+    }
+  }
+  
   const char *src=host->config->input_driver_names;
   if (src) {
     int srcp=0;
@@ -259,8 +294,8 @@ static int gp1_host_init_input_drivers(struct gp1_host *host) {
  
 static int gp1_host_init_drivers(struct gp1_host *host) {
   if (gp1_host_init_video_driver(host)<0) return -1;
+  if (gp1_host_init_input_drivers(host)<0) return -1; // must be after video
   if (gp1_host_init_audio_driver(host)<0) return -1;
-  if (gp1_host_init_input_drivers(host)<0) return -1;
   return 0;
 }
 
@@ -302,7 +337,7 @@ int gp1_host_run(struct gp1_host *host) {
   double starttime_cpu=gp1_now_cpu_s();
   double nexttime=starttime_real;
   double frametime=1.0/GP1_UPDATE_RATE;
-  int framec=0;
+  int framec=0,susframec=0;
   
   int err=0;
   while (1) {
@@ -340,21 +375,26 @@ int gp1_host_run(struct gp1_host *host) {
     
     if ((err=gp1_host_update_drivers(host))<0) break;
     
-    if ((err=gp1_vm_update(host->vm))<0) {
-      fprintf(stderr,"%s: Error updating VM.\n",host->config->exename);
-      break;
+    if (host->suspend&&!host->step) {
+      susframec++;
+    } else {
+      host->step=0;
+      if ((err=gp1_vm_update(host->vm))<0) {
+        fprintf(stderr,"%s: Error updating VM.\n",host->config->exename);
+        break;
+      }
+      if (
+        ((err=gp1_renderer_end_frame(host->renderer))<0)||
+        ((err=gp1_video_swap(host->video))<0)
+      ) {
+        fprintf(stderr,"%s: Error delivering video frame.\n",host->config->exename);
+        break;
+      }
+      framec++;
     }
-    
-    if (
-      ((err=gp1_renderer_end_frame(host->renderer))<0)||
-      ((err=gp1_video_swap(host->video))<0)
-    ) {
-      fprintf(stderr,"%s: Error delivering video frame.\n",host->config->exename);
-      break;
-    }
-    framec++;
   }
   
+  framec+=susframec;
   if ((err>=0)&&(framec>0)) {
     double endtime_real=gp1_now_s();
     double endtime_cpu=gp1_now_cpu_s();
@@ -368,4 +408,33 @@ int gp1_host_run(struct gp1_host *host) {
   }
   
   return err;
+}
+
+/* Action names.
+ */
+
+int gp1_host_action_eval(const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  #define _(tag) if ((srcc==sizeof(#tag)-1)&&!memcmp(src,#tag,srcc)) return GP1_ACTION_##tag;
+  GP1_FOR_EACH_ACTION
+  #undef _
+  return -1;
+}
+
+int gp1_host_action_repr(char *dst,int dsta,int action) {
+  if (!dst||(dsta<0)) dsta=0;
+  const char *src=0;
+  int srcc=0;
+  switch (action) {
+    #define _(tag) case GP1_ACTION_##tag: src=#tag; srcc=sizeof(#tag)-1; break;
+    GP1_FOR_EACH_ACTION
+    #undef _
+  }
+  if (srcc<1) return -1;
+  if (srcc<=dsta) {
+    memcpy(dst,src,srcc);
+    if (srcc<dsta) dst[srcc]=0;
+  }
+  return srcc;
 }

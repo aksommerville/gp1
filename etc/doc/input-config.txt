@@ -1,0 +1,65 @@
+Input config format for GP1.
+
+See src/main/inmgr/gp1_inmgr.h:gp1_inmgr_configure_text().
+
+Line-oriented text.
+'#' begins a line comment.
+Extra whitespace is not meaningful.
+
+The file is an array of Blocks.
+Each Block begins with a one-line introducer:
+  device [IDS] NAME
+IDS is vendor and product in hexadecimal separated by a colon, must be exactly 9 characters.
+Either ID may be zero for the default match-all behavior.
+NAME is loose text used as a pattern to match the device name.
+Whitespace condenses, letters are case-insensitive, '*' matches any amount of anything.
+See src/io/gp1_serial.h:gp1_pattern_match() for exact syntax.
+Note that NAME can't contain '#', you'll have to fudge over it with '*'.
+No Block terminator; it terminates implicitly at the start of the next Block or EOF.
+
+Within a Block, each line is a Rule:
+  SRCBTNID [LO..HI] DSTBTNID
+  player PLAYERID
+  driver NAME
+  auto
+
+The "player" rule should only appear once per Block if at all.
+This is the device's preferred assignment, in case you have multiple joysticks and want them assigned predictably.
+
+"driver" is an optional matching criterion; "none", "any", or the input driver's name eg "evdev", "machid", "mshid".
+The "none" driver matches the system keyboard.
+Usually you don't want to name a driver, but you might want one config file for multiple installations, so rules for both Linux and Mac eg.
+
+"auto" to enable automatic mapping for buttons not named here. By default, those extra buttons will be ignored.
+
+SRCBTNID is an integer, in the driver's namespace.
+"0x" prefix for hexadecimal.
+This may be USB-HID Usage, or something private to the driver, and you can't distinguish those.
+Drivers are encouraged to use the high bits of btnid to make HID collisions unlikely.
+
+LO..HI are two integers, inclusive at both ends.
+A source value in this range is "on".
+If omitted, the runtime will infer range from the driver, that's usually what you want.
+
+DSTBTNID is a button name, action name, button group name, or numeric VM button ID.
+VM button names:
+  LEFT RIGHT UP DOWN
+  SOUTH WEST EAST NORTH
+  L1 R1 L2 R2
+  AUX1 AUX2 AUX3
+Action names:
+  QUIT RESET
+  SUSPEND RESUME STEP_FRAME
+  SCREENCAP FULLSCREEN
+  LOAD_STATE SAVE_STATE
+Button group names:
+  HORZ VERT DPAD
+  NONE
+  
+Action names are supplied from outside inmgr, not strictly part of the spec.
+(see src/main/host/gp1_host.h)
+
+Groups (HORZ,VERT,DPAD) declare that an input will feed multiple outputs.
+LO..HI are the live-zone limits for HORZ and VERT; and the 8-value full range for DPAD.
+
+The "NONE" group lets you explicitly ignore a button, helpful when "auto" in use.

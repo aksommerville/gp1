@@ -78,14 +78,14 @@ int gp1_vm_input_event(struct gp1_vm *vm,int playerid,int btnid,int value) {
   if (value) {
     vm->input_state[playerid]|=btnid;
     if (playerid) {
-      vm->input_state[0]|=value;
+      vm->input_state[0]|=btnid;
     }
   } else {
     vm->input_state[playerid]&=~btnid;
     if (playerid) {
       int avalue=0,i=GP1_PLAYER_COUNT;
       while (i-->GP1_PLAYER_FIRST) {
-        if (vm->input_state[playerid]&btnid) {
+        if (vm->input_state[i]&btnid) {
           avalue=1;
           break;
         }

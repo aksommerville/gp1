@@ -24,7 +24,6 @@ Prereqs:
 - - [ ] Metal?
 - - [ ] Direct3d?
 - - [ ] Synthesizer
-- - [ ] Input manager (how much of this belongs in VM, and how much in host?)
 - [ ] I/O library
 - - [x] GLX driver
 - - - [ ] icon
@@ -56,6 +55,13 @@ Prereqs:
 - [ ] Native host
 - - [ ] General GUI
 - - [x] --help, show available drivers
+- - [ ] Input manager
+- - - [x] autoconfig
+- - - [x] carrier detect
+- - - [x] assign playerid
+- - - [x] gp1_inmgr_event.c: Don't count System Keyboard here. It should always be player 1, and so should the first joystick.
+- - - [ ] reencode and persist config
+- - - [ ] Support for interactive configuration
 - [ ] Web host
 - - [ ] Execution
 - - [ ] Renderer
@@ -70,3 +76,5 @@ Prereqs:
 - [x] Let imAG be empty, as a declaration of an intermediate framebuffer. No API for creating framebuffers live.
 - [ ] Add a "don't use implicitly" flag for nullrender (add to all driver types)
 - [ ] gl2: non-square tiles
+- [ ] glx: Get correct screen size initially (ie just one monitor). I get different results with an extra monitor attached but shouldn't.
+- [ ] glx: GNOME 3 shows program name at Alt-Tab as "Unknown". (ok at lower window bar)

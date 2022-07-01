@@ -84,10 +84,28 @@ void gp1_ws_disconnected(
 #define GP1_BTNID_AUX2      0x2000
 #define GP1_BTNID_AUX3      0x4000
 #define GP1_BTNID_CD        0x8000
+
+#define GP1_FOR_EACH_BTNID \
+  _(LEFT) \
+  _(RIGHT) \
+  _(UP) \
+  _(DOWN) \
+  _(SOUTH) \
+  _(WEST) \
+  _(EAST) \
+  _(NORTH) \
+  _(L1) \
+  _(R1) \
+  _(L2) \
+  _(R2) \
+  _(AUX1) \
+  _(AUX2) \
+  _(AUX3) \
+  _(CD)
  
 uint16_t gp1_get_input_state(int32_t playerid);
 
-//TODO Query input capabilities?
+//TODO Query input capabilities
 
 /* Video.
  ******************************************************************/

@@ -29,7 +29,7 @@ static int gp1_evdev_poll_device(struct gp1_input *input,struct gp1_evdev_device
     if (event->type==EV_SYN) continue;
     if (event->type==EV_MSC) continue;
   
-    if (input->delegate.button(input,device->devid,(event->type<<16)|event->code,event->value)<0) return -1;
+    if (input->delegate.button(input,device->devid,(event->type<<24)|event->code,event->value)<0) return -1;
   }
   return 0;
 }
@@ -214,7 +214,7 @@ static int gp1_evdev_device_iterate_1(
   void *userdata,
   int type,const uint8_t *v,int c
 ) {
-  int code=type<<16,err;
+  int code=type<<24,err;
   for (;c-->0;v++,code+=8) {
     if (!*v) continue;
     uint8_t mask=1,minor=0;
@@ -230,7 +230,7 @@ static int gp1_evdev_device_iterate_1(
         value=absinfo.value;
       }
       
-      if (err=cb(input,device->devid,code,gp1_evdev_usage_for_btnid(code),lo,value,hi,userdata)) return err;
+      if (err=cb(input,device->devid,code|minor,gp1_evdev_usage_for_btnid(code|minor),lo,value,hi,userdata)) return err;
     }
   }
   return 0;

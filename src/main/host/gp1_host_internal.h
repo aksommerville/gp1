@@ -3,6 +3,7 @@
 
 #include "gp1_host.h"
 #include "main/gp1_cli.h"
+#include "main/inmgr/gp1_inmgr.h"
 #include "vm/gp1_vm.h"
 #include "vm/gp1_rom.h"
 #include "vm/gp1_vm_render.h"
@@ -23,6 +24,10 @@ int _gp1_host_load(struct gp1_vm *vm,void *v,int a,uint32_t k);
 int _gp1_host_http_request(struct gp1_vm *vm,struct gp1_http_request *request);
 int _gp1_host_ws_connect(struct gp1_vm *vm,int wsid,const char *url,int urlc);
 int _gp1_host_ws_send(struct gp1_vm *vm,int wsid,const void *src,int srcc);
+
+// inmgr delegate
+int _gp1_host_inmgr_state(struct gp1_inmgr *inmgr,int playerid,int btnid,int value);
+int _gp1_host_inmgr_action(struct gp1_inmgr *inmgr,int action);
 
 // video delegate
 int _gp1_host_video_close(struct gp1_video *video);

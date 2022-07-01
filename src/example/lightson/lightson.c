@@ -203,13 +203,55 @@ static void render_1bit_tiles(int16_t x,int16_t y) {
   }
 }
 
+static void render_input(int x,int y) {
+  gp1_video_srcimage(&video,2);
+  int playerid=0;
+  x+=TILESIZE>>1;
+  y+=TILESIZE>>1;
+  for (;playerid<=GP1_PLAYER_LAST;playerid++,x+=TILESIZE) {
+    gp1_video_tile(&video,x,y,0x21+playerid);
+    gp1_video_tile(&video,x,y+TILESIZE,0x20);
+    uint16_t state=gp1_get_input_state(playerid);
+    if (state) {
+      uint16_t mask=0x8000;
+      uint16_t tileid=0x3f;
+      for (;mask;mask>>=1,tileid--) {
+        if (state&mask) {
+          gp1_video_tile(&video,x,y+TILESIZE,tileid);
+        }
+      }
+    }
+  }
+}
+
 static void render_frame() {
   
   gp1_video_bgcolor(&video,0x604020ff); // brown
+  /*XXX TEMP change background color when a single button is held.
+  switch (pvinput) {
+    case 0: break;
+    case GP1_BTNID_LEFT: gp1_video_bgcolor(&video,0xff0000ff); break;
+    case GP1_BTNID_RIGHT: gp1_video_bgcolor(&video,0xff8000ff); break;
+    case GP1_BTNID_UP: gp1_video_bgcolor(&video,0xffff00ff); break;
+    case GP1_BTNID_DOWN: gp1_video_bgcolor(&video,0x80ff00ff); break;
+    case GP1_BTNID_SOUTH: gp1_video_bgcolor(&video,0x00ff00ff); break;
+    case GP1_BTNID_WEST: gp1_video_bgcolor(&video,0x00ff80ff); break;
+    case GP1_BTNID_EAST: gp1_video_bgcolor(&video,0x00ffffff); break;
+    case GP1_BTNID_NORTH: gp1_video_bgcolor(&video,0x0080ffff); break;
+    case GP1_BTNID_L1: gp1_video_bgcolor(&video,0x0000ffff); break;
+    case GP1_BTNID_R1: gp1_video_bgcolor(&video,0x8000ffff); break;
+    case GP1_BTNID_L2: gp1_video_bgcolor(&video,0x000000ff); break;
+    case GP1_BTNID_R2: gp1_video_bgcolor(&video,0x404040ff); break;
+    case GP1_BTNID_AUX1: gp1_video_bgcolor(&video,0x808080ff); break;
+    case GP1_BTNID_AUX2: gp1_video_bgcolor(&video,0xc0c0c0ff); break;
+    case GP1_BTNID_AUX3: gp1_video_bgcolor(&video,0xffffffff); break;
+  }
+  /**/
   gp1_video_clear(&video);
   
   render_xform_exposition(0,0);
   render_1bit_tiles(0,55);
+  render_input(240,0);
   
   gp1_video_eof(&video);
 }

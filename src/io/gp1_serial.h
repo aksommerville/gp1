@@ -27,6 +27,7 @@ int gp1_int_eval(int *dst,const char *src,int srcc);
 int gp1_decsint_repr(char *dst,int dsta,int src);
 int gp1_decuint_repr(char *dst,int dsta,int src,int digitc);
 int gp1_hexuint_repr(char *dst,int dsta,int src,int digitc,int prefix);
+int gp1_hexuint_eval(int *dst,const char *src,int srcc); // digits only
 
 #define GP1_NUMBER_INTEGER      0x0001
 #define GP1_NUMBER_FLOAT        0x0002
@@ -45,6 +46,19 @@ int gp1_json_as_int(int *dst,const char *src,int srcc);
 
 int gp1_count_newlines(const char *src,int srcc);
 int gp1_is_text(const char *src,int srcc); // NB imperfect
+
+/* Nonzero if (pat) matches (src) with these rules:
+ *  - Leading and trailing whitespace are ignored.
+ *  - Inner whitespace is condensed.
+ *  - ASCII letters are case-insensitive.
+ *  - '*' matches any amount of anything.
+ *  - '#' matches one or more digits.
+ *  - '\' treats the next character literally (NB case sensitive).
+ * Zero for no match; positive results are greater if more characters matched.
+ * (eg pattern '*' matches everything, with a quality of 1).
+ * For matching input devices by name, and there will probably be other use cases.
+ */
+int gp1_pattern_match(const char *pat,int patc,const char *src,int srcc);
 
 /* Decoder.
  *****************************************************************/

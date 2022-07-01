@@ -124,6 +124,26 @@ int gp1_hexuint_repr(char *dst,int dsta,int src,int digitc,int prefix) {
   return dstc;
 }
 
+/* Evaluate hexadecimal integer, digits only.
+ */
+
+int gp1_hexuint_eval(int *dst,const char *src,int srcc) {
+  if (!src) return -1;
+  if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  *dst=0;
+  int shift=0;
+  while (srcc-->0) {
+    int digit=gp1_digit_eval(src[srcc]);
+    if ((digit<0)||(digit>15)) return -1;
+    (*dst)|=digit<<shift;
+    shift+=4;
+  }
+  if (!shift) return -1;
+  if (shift>32) return 0;
+  if (*dst<0) return 1;
+  return 2;
+}
+
 /* Measure number token.
  */
 
@@ -528,4 +548,79 @@ int gp1_is_text(const char *src,int srcc) {
     if ((*src>=0)&&(*src<=0x08)) return 0;
   }
   return 1;
+}
+
+/* Match text pattern.
+ */
+ 
+static int gp1_pattern_match_1(const char *pat,int patc,const char *src,int srcc) {
+  int patp=0,srcp=0,score=1;
+  while (1) {
+  
+    // Check completion of (pat).
+    if (patp>=patc) {
+      if (srcp<srcc) return 0;
+      return score;
+    }
+    
+    // Check for wildcard. (src) may be complete but still match.
+    if (pat[patp]=='*') {
+      patp++;
+      while ((patp<patc)&&(pat[patp]=='*')) patp++; // adjacent stars redundant
+      if (patp>=patc) return score; // trailing star matches all
+      while (srcp<srcc) {
+        int sub=gp1_pattern_match_1(pat+patp,patc-patp,src+srcp,srcc-srcp);
+        if (sub>0) return score+sub;
+        srcp++;
+      }
+      return 0; // portion after star didn't match
+    }
+    
+    // With wildcards out of the way, completion of (src) is a mismatch.
+    if (srcp>=srcc) return 0;
+    
+    // Literals.
+    if (pat[patp]=='\\') {
+      if (++patp>=patc) return 0; // malformed pattern
+      if (pat[patp]!=src[srcp]) return 0;
+      patp++;
+      srcp++;
+      score++;
+      continue;
+    }
+    
+    // Numeric wildcard.
+    if (pat[patp]=='#') {
+      if ((src[srcp]<'0')||(src[srcp]>'9')) return 0;
+      while ((srcp<srcc)&&(src[srcp]>='0')&&(src[srcp]<='9')) srcp++;
+      patp++;
+      score++; // the whole construction is worth just one point
+      continue;
+    }
+    
+    // Collapse inner whitespace.
+    if ((unsigned char)pat[patp]<=0x20) {
+      if ((unsigned char)src[srcp]>0x20) return 0;
+      while ((patp<patc)&&((unsigned char)pat[patp]<=0x20)) patp++;
+      while ((srcp<srcc)&&((unsigned char)src[srcp]<=0x20)) srcp++;
+      score++; // one point for the whole construction
+      continue;
+    }
+    
+    // Case-insensitive letters, or verbatim all else.
+    int cha=pat[patp++]; if ((cha>='A')&&(cha<='Z')) cha+=0x20;
+    int chb=src[srcp++]; if ((chb>='A')&&(chb<='Z')) chb+=0x20;
+    if (cha!=chb) return 0;
+    score++;
+  }
+}
+ 
+int gp1_pattern_match(const char *pat,int patc,const char *src,int srcc) {
+  if (!pat) patc=0; else if (patc<0) { patc=0; while (pat[patc]) patc++; }
+  if (!src) srcc=0; else if (srcc<0) { srcc=0; while (src[srcc]) srcc++; }
+  while (patc&&((unsigned char)pat[patc-1]<=0x20)) patc--;
+  while (patc&&((unsigned char)pat[0]<=0x20)) { patc--; pat++; }
+  while (srcc&&((unsigned char)src[srcc-1]<=0x20)) srcc--;
+  while (srcc&&((unsigned char)src[0]<=0x20)) { srcc--; src++; }
+  return gp1_pattern_match_1(pat,patc,src,srcc);
 }

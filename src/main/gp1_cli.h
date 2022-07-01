@@ -32,6 +32,7 @@ struct gp1_config {
   char *renderer_name;
   int audio_rate; // hz
   int audio_chanc;
+  char *input_config_path;
 };
 
 void gp1_config_cleanup(struct gp1_config *config);

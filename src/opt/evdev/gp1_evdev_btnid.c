@@ -229,7 +229,7 @@ static int gp1_evdev_default_usage_for_REL(int code) {
  */
  
 int gp1_evdev_usage_for_btnid(int btnid) {
-  switch (btnid>>16) {
+  switch (btnid>>24) {
     case EV_KEY: return gp1_evdev_default_usage_for_KEY(btnid&0xffff);
     case EV_ABS: return gp1_evdev_default_usage_for_ABS(btnid&0xffff);
     case EV_REL: return gp1_evdev_default_usage_for_REL(btnid&0xffff);

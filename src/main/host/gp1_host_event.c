@@ -56,6 +56,37 @@ int _gp1_host_ws_send(struct gp1_vm *vm,int wsid,const void *src,int srcc) {
   return 0;
 }
 
+/* Digested input state.
+ */
+ 
+int _gp1_host_inmgr_state(struct gp1_inmgr *inmgr,int playerid,int btnid,int value) {
+  struct gp1_host *host=gp1_inmgr_get_userdata(inmgr);
+  //fprintf(stderr,"%s %d.%04x=%d\n",__func__,playerid,btnid,value);
+  return gp1_vm_input_event(host->vm,playerid,btnid,value);
+}
+
+/* Stateless action.
+ */
+ 
+int _gp1_host_inmgr_action(struct gp1_inmgr *inmgr,int action) {
+  struct gp1_host *host=gp1_inmgr_get_userdata(inmgr);
+  fprintf(stderr,"%s 0x%08x\n",__func__,action);
+  switch (action) {
+    case GP1_ACTION_QUIT: host->quit_requested=1; break;
+    case GP1_ACTION_RESET: break;//TODO
+    case GP1_ACTION_SUSPEND: host->suspend=1; break;
+    case GP1_ACTION_RESUME: host->suspend=0; break;
+    case GP1_ACTION_SCREENCAP: break;//TODO
+    case GP1_ACTION_LOAD_STATE: break;//TODO
+    case GP1_ACTION_SAVE_STATE: break;//TODO
+    case GP1_ACTION_MENU: break;//TODO
+    case GP1_ACTION_STEP_FRAME: host->step=1; break;
+    case GP1_ACTION_FULLSCREEN: return gp1_video_set_fullscreen(host->video,-1);
+    default: fprintf(stderr,"%s:WARNING: Unimplemented action %d\n",host->config->exename,action);
+  }
+  return 0;
+}
+
 /* Window closed.
  */
 
@@ -70,7 +101,6 @@ int _gp1_host_video_close(struct gp1_video *video) {
  
 int _gp1_host_video_focus(struct gp1_video *video,int focus) {
   struct gp1_host *host=video->delegate.userdata;
-  fprintf(stderr,"%s %d\n",__func__,focus);
   return 0;
 }
 
@@ -91,78 +121,52 @@ int _gp1_host_video_resize(struct gp1_video *video,int w,int h) {
  
 int _gp1_host_video_key(struct gp1_video *video,int keycode,int value) {
   struct gp1_host *host=video->delegate.userdata;
-  fprintf(stderr,"%s 0x%08x=%d\n",__func__,keycode,value);
-  
-  //XXX TEMP hard-code a few key bindings helpful during development
-  if (value) switch (keycode) {
-    case 0x00070029: host->quit_requested=1; break; // Escape
-    case 0x00070044: gp1_video_set_fullscreen(host->video,-1); break; // F11
-  }
-  
+  //TODO Suspend keyboard events while text entry in progress (GUI).
+  int err=gp1_inmgr_key(host->inmgr,keycode,value);
+  if (err) return err;
   return 0;
 }
 
-/* Unicode keyboard input from window manager.
+/* Digested keyboard and mouse events from window manager.
+ * TODO Deliver to GUI.
  */
  
 int _gp1_host_video_text(struct gp1_video *video,int codepoint) {
   struct gp1_host *host=video->delegate.userdata;
-  fprintf(stderr,"%s U+%x\n",__func__,codepoint);
   return 0;
 }
-
-/* Mouse motion.
- */
  
 int _gp1_host_video_mmotion(struct gp1_video *video,int x,int y) {
   struct gp1_host *host=video->delegate.userdata;
-  //fprintf(stderr,"%s %d,%d\n",__func__,x,y);
   return 0;
 }
-
-/* Mouse button.
- */
  
 int _gp1_host_video_mbutton(struct gp1_video *video,int btnid,int value) {
   struct gp1_host *host=video->delegate.userdata;
-  //fprintf(stderr,"%s %d=%d\n",__func__,btnid,value);
   return 0;
 }
-
-/* Mouse wheel.
- */
  
 int _gp1_host_video_mwheel(struct gp1_video *video,int dx,int dy) {
   struct gp1_host *host=video->delegate.userdata;
-  //fprintf(stderr,"%s %+d,%+d\n",__func__,dx,dy);
   return 0;
 }
 
-/* Connected input device.
+/* General input events (let inmgr do all the work).
  */
 
 int _gp1_host_input_connect(struct gp1_input *input,int devid) {
   struct gp1_host *host=input->delegate.userdata;
-  fprintf(stderr,"%s %d\n",__func__,devid);
-  return 0;
+  return gp1_inmgr_connect(host->inmgr,input,devid);
 }
-
-/* Disconnected input device.
- */
  
 int _gp1_host_input_disconnect(struct gp1_input *input,int devid) {
   struct gp1_host *host=input->delegate.userdata;
-  fprintf(stderr,"%s %d\n",__func__,devid);
-  return 0;
+  return gp1_inmgr_disconnect(host->inmgr,input,devid);
 }
-
-/* Event on general input device.
- */
  
 int _gp1_host_input_button(struct gp1_input *input,int devid,int btnid,int value) {
   struct gp1_host *host=input->delegate.userdata;
-  fprintf(stderr,"%s %d.0x%08x=%d\n",__func__,devid,btnid,value);
-  return 0;
+  return gp1_inmgr_button(host->inmgr,input,devid,btnid,value);
 }
 
 /* Audio driver ready for PCM.

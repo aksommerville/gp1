@@ -13,6 +13,7 @@ void gp1_config_cleanup(struct gp1_config *config) {
   if (config->audio_driver_name) free(config->audio_driver_name);
   if (config->input_driver_names) free(config->input_driver_names);
   if (config->renderer_name) free(config->renderer_name);
+  if (config->input_config_path) free(config->input_config_path);
   if (config->posv) {
     int i=config->posc; while (i-->0) {
       if (config->posv[i]) free(config->posv[i]);
@@ -70,15 +71,16 @@ void gp1_config_print_help(struct gp1_config *config) {
     "  info              Print details about a ROM file. Multiple INPUTs.\n"
     "\n"
     "OPTIONS:\n"
-    "  --out=PATH        Output path for pack, convertchunk.\n"
-    "  --video=NAME      Video driver (run).\n"
-    "  --renderer=NAME   Render implementation (run).\n"
-    "  --audio=NAME      Audio driver (run).\n"
-    "  --audio-rate=HZ   Audio output rate (run).\n"
-    "  --audio-chanc=1|2 Audio channel count (run).\n"
-    "  --mono            same as '--audio-chanc=1'\n"
-    "  --stereo          same as '--audio-chanc=2'\n"
-    "  --inputs=NAMES    Input drivers, comma delimited (run).\n"
+    "  --out=PATH          Output path for pack, convertchunk.\n"
+    "  --video=NAME        Video driver (run).\n"
+    "  --renderer=NAME     Render implementation (run).\n"
+    "  --audio=NAME        Audio driver (run).\n"
+    "  --audio-rate=HZ     Audio output rate (run).\n"
+    "  --audio-chanc=1|2   Audio channel count (run).\n"
+    "  --mono              same as '--audio-chanc=1'\n"
+    "  --stereo            same as '--audio-chanc=2'\n"
+    "  --inputs=NAMES      Input drivers, comma delimited (run).\n"
+    "  --input-config=PATH Read input config from here instead of default.\n"
     "\n"
   );
   int i;
@@ -157,6 +159,7 @@ static int gp1_config_kv(struct gp1_config *config,const char *k,int kc,const ch
   STRINGPARAM(renderer_name,"renderer")
   INTPARAM(audio_rate,"audio-rate",200,200000)
   INTPARAM(audio_chanc,"audio-chanc",1,2)
+  STRINGPARAM(input_config_path,"input-config")
   
   #undef STRINGPARAM
   #undef INTPARAM
@@ -260,6 +263,11 @@ static int gp1_config_ready(struct gp1_config *config) {
   if (config->command==GP1_COMMAND_UNSET) {
     if (config->posc==1) config->command=GP1_COMMAND_run;
     else config->command=GP1_COMMAND_help;
+  }
+  
+  // Default input config path -- likely.
+  if ((config->command==GP1_COMMAND_run)&&!config->input_config_path) {
+    //TODO default for input_config_path (os-dependent)
   }
   
   return 0;

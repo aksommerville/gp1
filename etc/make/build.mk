@@ -107,3 +107,8 @@ $(MIDDIR)/example/%:src/example/%;$(PRECMD) cp $< $@
 
 $(MIDDIR)/test/int/gp1_itest_toc.h:etc/tool/genitesttoc.sh $(filter src/test/int/%.c,$(CFILES));$(PRECMD) $^ $@
 $(MIDDIR)/test/int/gp1_itest_main.c:$(MIDDIR)/test/int/gp1_itest_toc.h
+
+#---------------------------------------------------------------
+# Odds, ends.
+
+$(OUTDIR)/input.cfg:etc/tool/geninputcfg.sh;$(PRECMD) $< $@
